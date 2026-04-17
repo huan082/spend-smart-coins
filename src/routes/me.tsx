@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import { useState } from "react";
-import { Settings, Bell, LogOut, ChevronRight, Edit3, Coins, Gift, Trophy, Lock } from "lucide-react";
+import { Settings, Bell, LogOut, ChevronRight, Edit3, Coins, Gift, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/me")({
   component: MePage,
@@ -120,7 +120,6 @@ function MePage() {
         <div className="rounded-3xl bg-card border border-border/60 shadow-soft overflow-hidden">
           <MenuItem icon={Coins} label="積分總計與紀錄" to="/points" />
           <MenuItem icon={Gift} label="積分兌換" to="/redeem" />
-          <MenuItem icon={Trophy} label="我的成就" badge="即將推出" />
           <MenuItem icon={Bell} label="通知" to="/notifications" />
           <MenuItem icon={Settings} label="設定" to="/settings" />
         </div>
@@ -151,19 +150,16 @@ function Stat({ icon, label, value }: { icon: string; label: string; value: numb
   );
 }
 
-function MenuItem({ icon: Icon, label, to, badge }: { icon: any; label: string; to?: string; badge?: string }) {
-  const content = (
-    <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50 last:border-0">
-      <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-        <Icon className="w-4 h-4 text-foreground" />
-      </div>
-      <span className="flex-1 text-sm font-medium">{label}</span>
-      {badge ? (
-        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{badge}</span>
-      ) : (
+function MenuItem({ icon: Icon, label, to }: { icon: any; label: string; to: string }) {
+  return (
+    <Link to={to}>
+      <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border/50 last:border-0">
+        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+          <Icon className="w-4 h-4 text-foreground" />
+        </div>
+        <span className="flex-1 text-sm font-medium">{label}</span>
         <ChevronRight className="w-4 h-4 text-muted-foreground" />
-      )}
-    </div>
+      </div>
+    </Link>
   );
-  return to ? <Link to={to}>{content}</Link> : <div>{content}</div>;
 }

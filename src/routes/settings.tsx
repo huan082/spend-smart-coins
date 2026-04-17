@@ -1,7 +1,10 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
-import { Bell, Shield, Cloud, Download, Lock, ChevronRight, LogOut } from "lucide-react";
+import {
+  Bell, Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
+  TrendingDown, Sparkles, AlertTriangle,
+} from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
   component: SettingsPage,
@@ -9,7 +12,16 @@ export const Route = createFileRoute("/settings")({
 });
 
 function SettingsPage() {
-  const { notificationsEnabled, budgetAlertEnabled, toggleNotifications, toggleBudgetAlert, logout, transactions, goals } = useAppStore();
+  const {
+    budgetAlertEnabled, toggleBudgetAlert,
+    ledgerReminderEnabled, toggleLedgerReminder,
+    ledgerReminderTime, setLedgerReminderTime,
+    goalDropAlertEnabled, toggleGoalDropAlert,
+    dealRecommendEnabled, toggleDealRecommend,
+    abnormalSpendAlertEnabled, toggleAbnormalSpendAlert,
+    billReminderEnabled, toggleBillReminder,
+    logout, transactions, goals, clearAllData,
+  } = useAppStore();
   const navigate = useNavigate();
 
   const exportData = () => {
@@ -27,12 +39,50 @@ function SettingsPage() {
     <AppLayout title="設定" back="/me">
       <div className="px-5 py-4 space-y-4">
         <Section title="通知與提醒">
-          <Toggle icon={Bell} label="開啟通知" checked={notificationsEnabled} onChange={toggleNotifications} />
-          <Toggle icon={Bell} label="預算超支提醒" checked={budgetAlertEnabled} onChange={toggleBudgetAlert} />
-          <Toggle icon={Bell} label="定時記帳提醒（晚上 8 點）" checked={true} onChange={() => {}} />
-          <Toggle icon={Bell} label="目標商品降價提醒" checked={true} onChange={() => {}} />
-          <Toggle icon={Bell} label="個人化優惠推播" checked={true} onChange={() => {}} />
-          <Toggle icon={Bell} label="異常消費偵測" checked={true} onChange={() => {}} />
+          <Toggle icon={AlertTriangle} label="預算超支提醒" checked={budgetAlertEnabled} onChange={toggleBudgetAlert} />
+
+          {/* 定時記帳提醒（含時間） */}
+          <div className="px-4 py-3 border-b border-border/50">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+                <Clock className="w-4 h-4" />
+              </div>
+              <span className="flex-1 text-sm font-medium">定時記帳提醒</span>
+              <SwitchBtn checked={ledgerReminderEnabled} onChange={toggleLedgerReminder} />
+            </div>
+            {ledgerReminderEnabled && (
+              <div className="mt-3 ml-12 flex items-center gap-2">
+                <span className="text-xs text-muted-foreground">提醒時間</span>
+                <input
+                  type="time"
+                  value={ledgerReminderTime}
+                  onChange={(e) => setLedgerReminderTime(e.target.value)}
+                  className="px-3 py-1.5 rounded-xl bg-muted border border-border outline-none text-sm"
+                />
+              </div>
+            )}
+          </div>
+
+          <Toggle icon={TrendingDown} label="目標商品降價提醒" checked={goalDropAlertEnabled} onChange={toggleGoalDropAlert} />
+          <Toggle icon={Sparkles} label="個人化優惠推播" checked={dealRecommendEnabled} onChange={toggleDealRecommend} />
+          <Toggle icon={AlertTriangle} label="異常消費偵測" checked={abnormalSpendAlertEnabled} onChange={toggleAbnormalSpendAlert} />
+
+          {/* 固定帳單提醒（連到管理頁） */}
+          <div className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+                <Receipt className="w-4 h-4" />
+              </div>
+              <span className="flex-1 text-sm font-medium">固定帳單提醒</span>
+              <SwitchBtn checked={billReminderEnabled} onChange={toggleBillReminder} />
+            </div>
+            <button
+              onClick={() => navigate({ to: "/bills" })}
+              className="mt-3 ml-12 text-xs text-primary font-medium flex items-center gap-1"
+            >
+              管理我的固定帳單 <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
         </Section>
 
         <Section title="帳號與安全">
@@ -45,6 +95,17 @@ function SettingsPage() {
           <Item icon={Cloud} label="雲端同步" desc="自動備份至雲端" />
           <button onClick={exportData} className="w-full text-left">
             <Item icon={Download} label="資料匯出" desc="下載 JSON 備份" />
+          </button>
+          <button
+            onClick={() => {
+              if (confirm("確定要清除所有資料嗎？此動作無法復原（記帳、目標、積分、帳單將全部刪除）")) {
+                clearAllData();
+                alert("資料已清除");
+              }
+            }}
+            className="w-full text-left"
+          >
+            <Item icon={Trash2} label="清除所有資料" desc="記帳、目標、積分、帳單全部重置" danger />
           </button>
         </Section>
 
@@ -75,6 +136,18 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   );
 }
 
+function SwitchBtn({ checked, onChange }: { checked: boolean; onChange: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onChange}
+      className={`w-11 h-6 rounded-full transition-colors relative ${checked ? "bg-primary" : "bg-muted"}`}
+    >
+      <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-card shadow-soft transition-all ${checked ? "left-[22px]" : "left-0.5"}`} />
+    </button>
+  );
+}
+
 function Toggle({ icon: Icon, label, checked, onChange }: { icon: any; label: string; checked: boolean; onChange: () => void }) {
   return (
     <label className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0 cursor-pointer">
@@ -82,25 +155,19 @@ function Toggle({ icon: Icon, label, checked, onChange }: { icon: any; label: st
         <Icon className="w-4 h-4" />
       </div>
       <span className="flex-1 text-sm font-medium">{label}</span>
-      <button
-        type="button"
-        onClick={onChange}
-        className={`w-11 h-6 rounded-full transition-colors relative ${checked ? "bg-primary" : "bg-muted"}`}
-      >
-        <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-card shadow-soft transition-all ${checked ? "left-[22px]" : "left-0.5"}`} />
-      </button>
+      <SwitchBtn checked={checked} onChange={onChange} />
     </label>
   );
 }
 
-function Item({ icon: Icon, label, desc }: { icon: any; label: string; desc: string }) {
+function Item({ icon: Icon, label, desc, danger }: { icon: any; label: string; desc: string; danger?: boolean }) {
   return (
     <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0">
-      <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${danger ? "bg-destructive/15 text-destructive" : "bg-muted"}`}>
         <Icon className="w-4 h-4" />
       </div>
       <div className="flex-1">
-        <p className="text-sm font-medium">{label}</p>
+        <p className={`text-sm font-medium ${danger ? "text-destructive" : ""}`}>{label}</p>
         <p className="text-[11px] text-muted-foreground">{desc}</p>
       </div>
       <ChevronRight className="w-4 h-4 text-muted-foreground" />
