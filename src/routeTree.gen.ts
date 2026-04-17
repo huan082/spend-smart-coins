@@ -9,38 +9,319 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RedeemRouteImport } from './routes/redeem'
+import { Route as PointsRouteImport } from './routes/points'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as MeRouteImport } from './routes/me'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as HomeRouteImport } from './routes/home'
+import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as LedgerIndexRouteImport } from './routes/ledger.index'
+import { Route as GoalsIndexRouteImport } from './routes/goals.index'
+import { Route as DealsIndexRouteImport } from './routes/deals.index'
+import { Route as LedgerNewRouteImport } from './routes/ledger.new'
+import { Route as GoalsNewRouteImport } from './routes/goals.new'
+import { Route as DealsNewRouteImport } from './routes/deals.new'
+import { Route as LedgerEditIdRouteImport } from './routes/ledger.edit.$id'
+import { Route as GoalsEditIdRouteImport } from './routes/goals.edit.$id'
+import { Route as DealsEditIdRouteImport } from './routes/deals.edit.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedeemRoute = RedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PointsRoute = PointsRouteImport.update({
+  id: '/points',
+  path: '/points',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HomeRoute = HomeRouteImport.update({
+  id: '/home',
+  path: '/home',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BudgetRoute = BudgetRouteImport.update({
+  id: '/budget',
+  path: '/budget',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LedgerIndexRoute = LedgerIndexRouteImport.update({
+  id: '/ledger/',
+  path: '/ledger/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsIndexRoute = GoalsIndexRouteImport.update({
+  id: '/goals/',
+  path: '/goals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsIndexRoute = DealsIndexRouteImport.update({
+  id: '/deals/',
+  path: '/deals/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerNewRoute = LedgerNewRouteImport.update({
+  id: '/ledger/new',
+  path: '/ledger/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsNewRoute = GoalsNewRouteImport.update({
+  id: '/goals/new',
+  path: '/goals/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsNewRoute = DealsNewRouteImport.update({
+  id: '/deals/new',
+  path: '/deals/new',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LedgerEditIdRoute = LedgerEditIdRouteImport.update({
+  id: '/ledger/edit/$id',
+  path: '/ledger/edit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GoalsEditIdRoute = GoalsEditIdRouteImport.update({
+  id: '/goals/edit/$id',
+  path: '/goals/edit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DealsEditIdRoute = DealsEditIdRouteImport.update({
+  id: '/deals/edit/$id',
+  path: '/deals/edit/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/budget': typeof BudgetRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
+  '/deals/new': typeof DealsNewRoute
+  '/goals/new': typeof GoalsNewRoute
+  '/ledger/new': typeof LedgerNewRoute
+  '/deals/': typeof DealsIndexRoute
+  '/goals/': typeof GoalsIndexRoute
+  '/ledger/': typeof LedgerIndexRoute
+  '/deals/edit/$id': typeof DealsEditIdRoute
+  '/goals/edit/$id': typeof GoalsEditIdRoute
+  '/ledger/edit/$id': typeof LedgerEditIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/budget': typeof BudgetRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
+  '/deals/new': typeof DealsNewRoute
+  '/goals/new': typeof GoalsNewRoute
+  '/ledger/new': typeof LedgerNewRoute
+  '/deals': typeof DealsIndexRoute
+  '/goals': typeof GoalsIndexRoute
+  '/ledger': typeof LedgerIndexRoute
+  '/deals/edit/$id': typeof DealsEditIdRoute
+  '/goals/edit/$id': typeof GoalsEditIdRoute
+  '/ledger/edit/$id': typeof LedgerEditIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/budget': typeof BudgetRoute
+  '/home': typeof HomeRoute
+  '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
+  '/deals/new': typeof DealsNewRoute
+  '/goals/new': typeof GoalsNewRoute
+  '/ledger/new': typeof LedgerNewRoute
+  '/deals/': typeof DealsIndexRoute
+  '/goals/': typeof GoalsIndexRoute
+  '/ledger/': typeof LedgerIndexRoute
+  '/deals/edit/$id': typeof DealsEditIdRoute
+  '/goals/edit/$id': typeof GoalsEditIdRoute
+  '/ledger/edit/$id': typeof LedgerEditIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/budget'
+    | '/home'
+    | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
+    | '/deals/new'
+    | '/goals/new'
+    | '/ledger/new'
+    | '/deals/'
+    | '/goals/'
+    | '/ledger/'
+    | '/deals/edit/$id'
+    | '/goals/edit/$id'
+    | '/ledger/edit/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/budget'
+    | '/home'
+    | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
+    | '/deals/new'
+    | '/goals/new'
+    | '/ledger/new'
+    | '/deals'
+    | '/goals'
+    | '/ledger'
+    | '/deals/edit/$id'
+    | '/goals/edit/$id'
+    | '/ledger/edit/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/budget'
+    | '/home'
+    | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
+    | '/deals/new'
+    | '/goals/new'
+    | '/ledger/new'
+    | '/deals/'
+    | '/goals/'
+    | '/ledger/'
+    | '/deals/edit/$id'
+    | '/goals/edit/$id'
+    | '/ledger/edit/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  BudgetRoute: typeof BudgetRoute
+  HomeRoute: typeof HomeRoute
+  LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
+  NotificationsRoute: typeof NotificationsRoute
+  PointsRoute: typeof PointsRoute
+  RedeemRoute: typeof RedeemRoute
+  SettingsRoute: typeof SettingsRoute
+  DealsNewRoute: typeof DealsNewRoute
+  GoalsNewRoute: typeof GoalsNewRoute
+  LedgerNewRoute: typeof LedgerNewRoute
+  DealsIndexRoute: typeof DealsIndexRoute
+  GoalsIndexRoute: typeof GoalsIndexRoute
+  LedgerIndexRoute: typeof LedgerIndexRoute
+  DealsEditIdRoute: typeof DealsEditIdRoute
+  GoalsEditIdRoute: typeof GoalsEditIdRoute
+  LedgerEditIdRoute: typeof LedgerEditIdRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redeem': {
+      id: '/redeem'
+      path: '/redeem'
+      fullPath: '/redeem'
+      preLoaderRoute: typeof RedeemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/points': {
+      id: '/points'
+      path: '/points'
+      fullPath: '/points'
+      preLoaderRoute: typeof PointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/home': {
+      id: '/home'
+      path: '/home'
+      fullPath: '/home'
+      preLoaderRoute: typeof HomeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/budget': {
+      id: '/budget'
+      path: '/budget'
+      fullPath: '/budget'
+      preLoaderRoute: typeof BudgetRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,21 +329,92 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ledger/': {
+      id: '/ledger/'
+      path: '/ledger'
+      fullPath: '/ledger/'
+      preLoaderRoute: typeof LedgerIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals/': {
+      id: '/goals/'
+      path: '/goals'
+      fullPath: '/goals/'
+      preLoaderRoute: typeof GoalsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals/': {
+      id: '/deals/'
+      path: '/deals'
+      fullPath: '/deals/'
+      preLoaderRoute: typeof DealsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger/new': {
+      id: '/ledger/new'
+      path: '/ledger/new'
+      fullPath: '/ledger/new'
+      preLoaderRoute: typeof LedgerNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals/new': {
+      id: '/goals/new'
+      path: '/goals/new'
+      fullPath: '/goals/new'
+      preLoaderRoute: typeof GoalsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals/new': {
+      id: '/deals/new'
+      path: '/deals/new'
+      fullPath: '/deals/new'
+      preLoaderRoute: typeof DealsNewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ledger/edit/$id': {
+      id: '/ledger/edit/$id'
+      path: '/ledger/edit/$id'
+      fullPath: '/ledger/edit/$id'
+      preLoaderRoute: typeof LedgerEditIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/goals/edit/$id': {
+      id: '/goals/edit/$id'
+      path: '/goals/edit/$id'
+      fullPath: '/goals/edit/$id'
+      preLoaderRoute: typeof GoalsEditIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/deals/edit/$id': {
+      id: '/deals/edit/$id'
+      path: '/deals/edit/$id'
+      fullPath: '/deals/edit/$id'
+      preLoaderRoute: typeof DealsEditIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  BudgetRoute: BudgetRoute,
+  HomeRoute: HomeRoute,
+  LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
+  NotificationsRoute: NotificationsRoute,
+  PointsRoute: PointsRoute,
+  RedeemRoute: RedeemRoute,
+  SettingsRoute: SettingsRoute,
+  DealsNewRoute: DealsNewRoute,
+  GoalsNewRoute: GoalsNewRoute,
+  LedgerNewRoute: LedgerNewRoute,
+  DealsIndexRoute: DealsIndexRoute,
+  GoalsIndexRoute: GoalsIndexRoute,
+  LedgerIndexRoute: LedgerIndexRoute,
+  DealsEditIdRoute: DealsEditIdRoute,
+  GoalsEditIdRoute: GoalsEditIdRoute,
+  LedgerEditIdRoute: LedgerEditIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { createStart } from '@tanstack/react-start'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-  }
-}
