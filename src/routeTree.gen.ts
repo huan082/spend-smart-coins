@@ -17,6 +17,8 @@ import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as BudgetRouteImport } from './routes/budget'
+import { Route as BillsRouteImport } from './routes/bills'
+import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LedgerIndexRouteImport } from './routes/ledger.index'
 import { Route as GoalsIndexRouteImport } from './routes/goals.index'
@@ -66,6 +68,16 @@ const HomeRoute = HomeRouteImport.update({
 const BudgetRoute = BudgetRouteImport.update({
   id: '/budget',
   path: '/budget',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BillsRoute = BillsRouteImport.update({
+  id: '/bills',
+  path: '/bills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AnalyticsRoute = AnalyticsRouteImport.update({
+  id: '/analytics',
+  path: '/analytics',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -121,6 +133,8 @@ const DealsEditIdRoute = DealsEditIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -141,6 +155,8 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -162,6 +178,8 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/analytics': typeof AnalyticsRoute
+  '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
@@ -184,6 +202,8 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/analytics'
+    | '/bills'
     | '/budget'
     | '/home'
     | '/login'
@@ -204,6 +224,8 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/analytics'
+    | '/bills'
     | '/budget'
     | '/home'
     | '/login'
@@ -224,6 +246,8 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/analytics'
+    | '/bills'
     | '/budget'
     | '/home'
     | '/login'
@@ -245,6 +269,8 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AnalyticsRoute: typeof AnalyticsRoute
+  BillsRoute: typeof BillsRoute
   BudgetRoute: typeof BudgetRoute
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
@@ -322,6 +348,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BudgetRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/bills': {
+      id: '/bills'
+      path: '/bills'
+      fullPath: '/bills'
+      preLoaderRoute: typeof BillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/analytics': {
+      id: '/analytics'
+      path: '/analytics'
+      fullPath: '/analytics'
+      preLoaderRoute: typeof AnalyticsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -397,6 +437,8 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AnalyticsRoute: AnalyticsRoute,
+  BillsRoute: BillsRoute,
   BudgetRoute: BudgetRoute,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
