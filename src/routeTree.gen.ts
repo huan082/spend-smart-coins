@@ -9,6 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RedeemRouteImport } from './routes/redeem'
+import { Route as PointsRouteImport } from './routes/points'
+import { Route as NotificationsRouteImport } from './routes/notifications'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
 import { Route as BudgetRouteImport } from './routes/budget'
@@ -23,6 +28,31 @@ import { Route as LedgerEditIdRouteImport } from './routes/ledger.edit.$id'
 import { Route as GoalsEditIdRouteImport } from './routes/goals.edit.$id'
 import { Route as DealsEditIdRouteImport } from './routes/deals.edit.$id'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedeemRoute = RedeemRouteImport.update({
+  id: '/redeem',
+  path: '/redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PointsRoute = PointsRouteImport.update({
+  id: '/points',
+  path: '/points',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotificationsRoute = NotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -94,6 +124,11 @@ export interface FileRoutesByFullPath {
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
   '/ledger/new': typeof LedgerNewRoute
@@ -109,6 +144,11 @@ export interface FileRoutesByTo {
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
   '/ledger/new': typeof LedgerNewRoute
@@ -125,6 +165,11 @@ export interface FileRoutesById {
   '/budget': typeof BudgetRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
+  '/me': typeof MeRoute
+  '/notifications': typeof NotificationsRoute
+  '/points': typeof PointsRoute
+  '/redeem': typeof RedeemRoute
+  '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
   '/ledger/new': typeof LedgerNewRoute
@@ -142,6 +187,11 @@ export interface FileRouteTypes {
     | '/budget'
     | '/home'
     | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
     | '/deals/new'
     | '/goals/new'
     | '/ledger/new'
@@ -157,6 +207,11 @@ export interface FileRouteTypes {
     | '/budget'
     | '/home'
     | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
     | '/deals/new'
     | '/goals/new'
     | '/ledger/new'
@@ -172,6 +227,11 @@ export interface FileRouteTypes {
     | '/budget'
     | '/home'
     | '/login'
+    | '/me'
+    | '/notifications'
+    | '/points'
+    | '/redeem'
+    | '/settings'
     | '/deals/new'
     | '/goals/new'
     | '/ledger/new'
@@ -188,6 +248,11 @@ export interface RootRouteChildren {
   BudgetRoute: typeof BudgetRoute
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
+  MeRoute: typeof MeRoute
+  NotificationsRoute: typeof NotificationsRoute
+  PointsRoute: typeof PointsRoute
+  RedeemRoute: typeof RedeemRoute
+  SettingsRoute: typeof SettingsRoute
   DealsNewRoute: typeof DealsNewRoute
   GoalsNewRoute: typeof GoalsNewRoute
   LedgerNewRoute: typeof LedgerNewRoute
@@ -201,6 +266,41 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redeem': {
+      id: '/redeem'
+      path: '/redeem'
+      fullPath: '/redeem'
+      preLoaderRoute: typeof RedeemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/points': {
+      id: '/points'
+      path: '/points'
+      fullPath: '/points'
+      preLoaderRoute: typeof PointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notifications': {
+      id: '/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof NotificationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -300,6 +400,11 @@ const rootRouteChildren: RootRouteChildren = {
   BudgetRoute: BudgetRoute,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
+  MeRoute: MeRoute,
+  NotificationsRoute: NotificationsRoute,
+  PointsRoute: PointsRoute,
+  RedeemRoute: RedeemRoute,
+  SettingsRoute: SettingsRoute,
   DealsNewRoute: DealsNewRoute,
   GoalsNewRoute: GoalsNewRoute,
   LedgerNewRoute: LedgerNewRoute,

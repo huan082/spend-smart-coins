@@ -26,7 +26,7 @@ function MePage() {
   };
 
   return (
-    <AppLayout title="個人中心" showIcons={false} right={
+    <AppLayout title="個人中心" right={
       <div className="flex gap-1">
         <Link to="/notifications" className="p-2 rounded-full hover:bg-muted"><Bell className="w-5 h-5" /></Link>
         <Link to="/settings" className="p-2 rounded-full hover:bg-muted"><Settings className="w-5 h-5" /></Link>
