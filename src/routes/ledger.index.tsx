@@ -104,8 +104,11 @@ function LedgerPage() {
                       {t.type === "expense" ? "🛒" : "💰"}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-sm truncate">{t.category}</p>
-                      <p className="text-xs text-muted-foreground truncate">
+                      <p className="font-medium text-sm truncate">
+                        {t.category}{t.store ? ` · ${t.store}` : ""}
+                      </p>
+                      <p className="text-xs text-muted-foreground truncate flex items-center gap-1">
+                        {t.photo && <span>📷</span>}
                         {t.note || "—"}
                       </p>
                     </div>

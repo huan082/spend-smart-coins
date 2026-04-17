@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
-import { useAppStore, getWeekRange, getMonthRange } from "@/store/useAppStore";
+import { useAppStore, getMonthRange, getWeekRange, getUpcomingBills } from "@/store/useAppStore";
 import { motion } from "framer-motion";
-import { Lock, TrendingUp, Sparkles, Plus, Target, Tag, Wallet } from "lucide-react";
+import { Lock, TrendingUp, Sparkles, Plus, BarChart3, Receipt, Calendar } from "lucide-react";
 
 export const Route = createFileRoute("/home")({
   component: HomePage,
@@ -10,9 +10,9 @@ export const Route = createFileRoute("/home")({
 });
 
 function HomePage() {
-  const { user, weeklyBudget, transactions, points, goals } = useAppStore();
+  const { user, weeklyBudget, transactions, points, goals, bills } = useAppStore();
   const { start: ws, end: we } = getWeekRange();
-  const { start: ms, end: me } = getMonthRange();
+  const { start: ms, end: me2 } = getMonthRange();
 
   const weekSpent = transactions
     .filter((t) => {
@@ -21,12 +21,15 @@ function HomePage() {
     })
     .reduce((s, t) => s + t.amount, 0);
 
-  const monthSpent = transactions
-    .filter((t) => {
-      const d = new Date(t.date);
-      return t.type === "expense" && d >= ms && d < me;
-    })
-    .reduce((s, t) => s + t.amount, 0);
+  const monthTxns = transactions.filter((t) => {
+    const d = new Date(t.date);
+    return d >= ms && d < me2;
+  });
+  const monthSpent = monthTxns.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
+  const monthIncome = monthTxns.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
+
+  const upcomingBills = getUpcomingBills(bills);
+  const upcomingTotal = upcomingBills.reduce((s, b) => s + b.amount, 0);
 
   const remaining = weeklyBudget - weekSpent;
   const pct = weeklyBudget > 0 ? Math.min(100, (weekSpent / weeklyBudget) * 100) : 0;
@@ -73,7 +76,7 @@ function HomePage() {
           </div>
         </motion.div>
 
-        {/* Stats grid */}
+        {/* Stats grid: 積分 / 本月支出 / 本月收入 / 待繳帳單 */}
         <div className="grid grid-cols-2 gap-3">
           <Link
             to="/points"
@@ -94,24 +97,48 @@ function HomePage() {
           <div className="rounded-2xl p-4 shadow-soft border border-border/60 bg-card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xl">📊</span>
-              <TrendingUp className="w-3.5 h-3.5 text-success" />
+              <TrendingUp className="w-3.5 h-3.5 text-destructive" />
             </div>
             <p className="text-xs text-muted-foreground mb-0.5">本月支出</p>
             <p className="font-display font-extrabold text-xl">
               ${monthSpent.toLocaleString()}
             </p>
           </div>
+
+          <div className="rounded-2xl p-4 shadow-soft border border-border/60 bg-card">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xl">💰</span>
+              <TrendingUp className="w-3.5 h-3.5 text-success" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">本月收入</p>
+            <p className="font-display font-extrabold text-xl text-success">
+              ${monthIncome.toLocaleString()}
+            </p>
+          </div>
+
+          <Link to="/bills" className="rounded-2xl p-4 shadow-soft border border-border/60 bg-card">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xl">📮</span>
+              <Receipt className="w-3.5 h-3.5 text-primary" />
+            </div>
+            <p className="text-xs text-muted-foreground mb-0.5">
+              待繳帳單 ({upcomingBills.length})
+            </p>
+            <p className="font-display font-extrabold text-xl">
+              ${upcomingTotal.toLocaleString()}
+            </p>
+          </Link>
         </div>
 
-        {/* Quick actions */}
+        {/* Quick actions：記一筆 + 消費分析 + 待繳帳單 + 本月收支 */}
         <div>
           <h2 className="font-display font-bold text-base mb-3 px-1">快速操作</h2>
           <div className="grid grid-cols-4 gap-2">
             {[
-              { to: "/ledger/new", icon: Plus, label: "記一筆", color: "bg-primary-soft text-primary" },
-              { to: "/budget", icon: Wallet, label: "預算", color: "bg-tertiary/50 text-tertiary-foreground" },
-              { to: "/goals", icon: Target, label: "目標", color: "bg-accent/50 text-accent-foreground" },
-              { to: "/deals", icon: Tag, label: "優惠", color: "bg-highlight/50 text-highlight-foreground" },
+              { to: "/ledger/new" as const, icon: Plus, label: "記一筆", color: "bg-primary-soft text-primary" },
+              { to: "/analytics" as const, icon: BarChart3, label: "消費分析", color: "bg-tertiary/50 text-tertiary-foreground" },
+              { to: "/bills" as const, icon: Calendar, label: "帳單", color: "bg-accent/50 text-accent-foreground" },
+              { to: "/ledger" as const, icon: Receipt, label: "明細", color: "bg-highlight/50 text-highlight-foreground" },
             ].map((a) => (
               <Link
                 key={a.to}
@@ -126,6 +153,35 @@ function HomePage() {
             ))}
           </div>
         </div>
+
+        {/* 待繳帳單詳列 */}
+        {upcomingBills.length > 0 && (
+          <div>
+            <div className="flex items-center justify-between mb-3 px-1">
+              <h2 className="font-display font-bold text-base">本月待繳帳單</h2>
+              <Link to="/bills" className="text-xs text-primary font-medium">管理</Link>
+            </div>
+            <div className="space-y-2">
+              {upcomingBills.slice(0, 3).map((b) => (
+                <div
+                  key={b.id}
+                  className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60 shadow-soft"
+                >
+                  <div className="w-10 h-10 rounded-xl bg-tertiary/40 flex items-center justify-center">
+                    <Receipt className="w-4 h-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-sm truncate">{b.name}</p>
+                    <p className="text-xs text-muted-foreground">每月 {b.dueDay} 號</p>
+                  </div>
+                  <span className="font-display font-bold text-sm">
+                    ${b.amount.toLocaleString()}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Recent transactions */}
         <div>
@@ -149,7 +205,9 @@ function HomePage() {
                   {t.type === "expense" ? "🛒" : "💰"}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-sm truncate">{t.category}</p>
+                  <p className="font-medium text-sm truncate">
+                    {t.category}{t.store ? ` · ${t.store}` : ""}
+                  </p>
                   <p className="text-xs text-muted-foreground truncate">
                     {t.note || "—"}
                   </p>
