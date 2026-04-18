@@ -11,13 +11,16 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RedeemRouteImport } from './routes/redeem'
+import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as HomeRouteImport } from './routes/home'
+import { Route as CarriersRouteImport } from './routes/carriers'
 import { Route as BudgetRouteImport } from './routes/budget'
 import { Route as BillsRouteImport } from './routes/bills'
+import { Route as AutoLedgerRouteImport } from './routes/auto-ledger'
 import { Route as AnalyticsRouteImport } from './routes/analytics'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as LedgerIndexRouteImport } from './routes/ledger.index'
@@ -38,6 +41,11 @@ const SettingsRoute = SettingsRouteImport.update({
 const RedeemRoute = RedeemRouteImport.update({
   id: '/redeem',
   path: '/redeem',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileRoute = ProfileRouteImport.update({
+  id: '/profile',
+  path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PointsRoute = PointsRouteImport.update({
@@ -65,6 +73,11 @@ const HomeRoute = HomeRouteImport.update({
   path: '/home',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CarriersRoute = CarriersRouteImport.update({
+  id: '/carriers',
+  path: '/carriers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const BudgetRoute = BudgetRouteImport.update({
   id: '/budget',
   path: '/budget',
@@ -73,6 +86,11 @@ const BudgetRoute = BudgetRouteImport.update({
 const BillsRoute = BillsRouteImport.update({
   id: '/bills',
   path: '/bills',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AutoLedgerRoute = AutoLedgerRouteImport.update({
+  id: '/auto-ledger',
+  path: '/auto-ledger',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AnalyticsRoute = AnalyticsRouteImport.update({
@@ -134,13 +152,16 @@ const DealsEditIdRoute = DealsEditIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auto-ledger': typeof AutoLedgerRoute
   '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
+  '/carriers': typeof CarriersRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
@@ -156,13 +177,16 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auto-ledger': typeof AutoLedgerRoute
   '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
+  '/carriers': typeof CarriersRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
@@ -179,13 +203,16 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/analytics': typeof AnalyticsRoute
+  '/auto-ledger': typeof AutoLedgerRoute
   '/bills': typeof BillsRoute
   '/budget': typeof BudgetRoute
+  '/carriers': typeof CarriersRoute
   '/home': typeof HomeRoute
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
   '/points': typeof PointsRoute
+  '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
@@ -203,13 +230,16 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/analytics'
+    | '/auto-ledger'
     | '/bills'
     | '/budget'
+    | '/carriers'
     | '/home'
     | '/login'
     | '/me'
     | '/notifications'
     | '/points'
+    | '/profile'
     | '/redeem'
     | '/settings'
     | '/deals/new'
@@ -225,13 +255,16 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/analytics'
+    | '/auto-ledger'
     | '/bills'
     | '/budget'
+    | '/carriers'
     | '/home'
     | '/login'
     | '/me'
     | '/notifications'
     | '/points'
+    | '/profile'
     | '/redeem'
     | '/settings'
     | '/deals/new'
@@ -247,13 +280,16 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/analytics'
+    | '/auto-ledger'
     | '/bills'
     | '/budget'
+    | '/carriers'
     | '/home'
     | '/login'
     | '/me'
     | '/notifications'
     | '/points'
+    | '/profile'
     | '/redeem'
     | '/settings'
     | '/deals/new'
@@ -270,13 +306,16 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AnalyticsRoute: typeof AnalyticsRoute
+  AutoLedgerRoute: typeof AutoLedgerRoute
   BillsRoute: typeof BillsRoute
   BudgetRoute: typeof BudgetRoute
+  CarriersRoute: typeof CarriersRoute
   HomeRoute: typeof HomeRoute
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
   NotificationsRoute: typeof NotificationsRoute
   PointsRoute: typeof PointsRoute
+  ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
   SettingsRoute: typeof SettingsRoute
   DealsNewRoute: typeof DealsNewRoute
@@ -304,6 +343,13 @@ declare module '@tanstack/react-router' {
       path: '/redeem'
       fullPath: '/redeem'
       preLoaderRoute: typeof RedeemRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile': {
+      id: '/profile'
+      path: '/profile'
+      fullPath: '/profile'
+      preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/points': {
@@ -341,6 +387,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HomeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/carriers': {
+      id: '/carriers'
+      path: '/carriers'
+      fullPath: '/carriers'
+      preLoaderRoute: typeof CarriersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/budget': {
       id: '/budget'
       path: '/budget'
@@ -353,6 +406,13 @@ declare module '@tanstack/react-router' {
       path: '/bills'
       fullPath: '/bills'
       preLoaderRoute: typeof BillsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auto-ledger': {
+      id: '/auto-ledger'
+      path: '/auto-ledger'
+      fullPath: '/auto-ledger'
+      preLoaderRoute: typeof AutoLedgerRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/analytics': {
@@ -438,13 +498,16 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AnalyticsRoute: AnalyticsRoute,
+  AutoLedgerRoute: AutoLedgerRoute,
   BillsRoute: BillsRoute,
   BudgetRoute: BudgetRoute,
+  CarriersRoute: CarriersRoute,
   HomeRoute: HomeRoute,
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
   NotificationsRoute: NotificationsRoute,
   PointsRoute: PointsRoute,
+  ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,
   SettingsRoute: SettingsRoute,
   DealsNewRoute: DealsNewRoute,
@@ -460,3 +523,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}
