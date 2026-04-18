@@ -2,7 +2,10 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
-import { Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Store as StoreIcon } from "lucide-react";
+import {
+  Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
+  Bookmark, BookmarkCheck,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhTW } from "date-fns/locale";
 
@@ -11,14 +14,19 @@ export const Route = createFileRoute("/deals/")({
   head: () => ({ meta: [{ title: "優惠探索" }] }),
 });
 
-type Tab = "explore" | "map" | "frequent";
+type Tab = "posts" | "map" | "frequent";
 
 function DealsPage() {
-  const { deals, user, transactions, likeDeal, deleteDeal } = useAppStore();
-  const [tab, setTab] = useState<Tab>("explore");
+  const {
+    deals, user, transactions,
+    likeDeal, deleteDeal,
+    favoriteDealIds, favoriteStores,
+    toggleFavoriteDeal, toggleFavoriteStore,
+  } = useAppStore();
+  const [tab, setTab] = useState<Tab>("posts");
   const [q, setQ] = useState("");
+  const [mapQ, setMapQ] = useState("");
 
-  // 從本月消費找出常去店家
   const frequentStores = useMemo(() => {
     const { start, end } = getMonthRange();
     const map = new Map<string, number>();
@@ -33,16 +41,27 @@ function DealsPage() {
       .map(([name, count]) => ({ name, count }));
   }, [transactions]);
 
-  const explore = deals.filter(
+  const posts = deals.filter(
     (d) => !q || d.title.includes(q) || d.store.includes(q) || d.description.includes(q)
   );
 
-  const frequentDeals = useMemo(() => {
-    const names = new Set(frequentStores.map((s) => s.name));
-    return deals.filter((d) => names.has(d.store));
-  }, [deals, frequentStores]);
+  const mapDeals = useMemo(
+    () =>
+      deals
+        .filter((d) => d.lat && d.lng)
+        .filter((d) => !mapQ || d.store.includes(mapQ) || d.address?.includes(mapQ) || d.title.includes(mapQ)),
+    [deals, mapQ]
+  );
 
-  const mapDeals = deals.filter((d) => d.lat && d.lng);
+  const allFreqStores = Array.from(
+    new Set([...favoriteStores, ...frequentStores.map((s) => s.name)])
+  );
+  const frequentDeals = useMemo(() => {
+    const names = new Set(allFreqStores);
+    return deals.filter((d) => names.has(d.store));
+  }, [deals, allFreqStores]);
+
+  const favoriteDeals = deals.filter((d) => favoriteDealIds.includes(d.id));
 
   return (
     <AppLayout
@@ -68,9 +87,9 @@ function DealsPage() {
         {/* Tabs */}
         <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-2xl">
           {([
-            { k: "explore", l: "優惠探索" },
+            { k: "posts", l: "優惠貼文" },
             { k: "map", l: "好康地圖" },
-            { k: "frequent", l: "常去店家" },
+            { k: "frequent", l: "收藏 / 常去" },
           ] as { k: Tab; l: string }[]).map(({ k, l }) => (
             <button
               key={k}
@@ -84,98 +103,177 @@ function DealsPage() {
           ))}
         </div>
 
-        {tab === "explore" && (
+        {/* === 優惠貼文 === */}
+        {tab === "posts" && (
           <>
-            <input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="搜尋商家或優惠..."
-              className="w-full px-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
-            />
-            {explore.map((d) => (
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="搜尋商家、優惠..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
+              />
+            </div>
+            {posts.map((d) => (
               <DealCard
                 key={d.id}
                 d={d}
                 isMine={d.authorId === user?.id}
+                isFav={favoriteDealIds.includes(d.id)}
                 onLike={() => likeDeal(d.id)}
+                onFav={() => toggleFavoriteDeal(d.id)}
                 onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
               />
             ))}
-            {explore.length === 0 && (
+            {posts.length === 0 && (
               <div className="py-12 text-center text-muted-foreground">
                 <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">沒有找到優惠</p>
+                <p className="text-sm">沒有找到優惠貼文</p>
               </div>
             )}
           </>
         )}
 
+        {/* === 好康地圖 === */}
         {tab === "map" && (
           <>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={mapQ}
+                onChange={(e) => setMapQ(e.target.value)}
+                placeholder="搜尋地址、店家..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
+              />
+            </div>
+
             <MapView deals={mapDeals} />
-            <p className="text-xs text-muted-foreground text-center px-4">
-              📍 顯示附近有優惠的店家位置（共 {mapDeals.length} 處）
-            </p>
-            {mapDeals.map((d) => (
-              <div
-                key={d.id}
-                className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft"
-              >
-                <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center">
-                  <MapPin className="w-5 h-5 text-primary" />
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-bold text-sm">{d.title}</p>
-                  <p className="text-xs text-muted-foreground truncate">{d.address}</p>
-                  <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">
-                    {d.store}
-                  </span>
-                </div>
+
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
+                附近店家優惠（{mapDeals.length}）
+              </p>
+              <div className="space-y-2">
+                {mapDeals.map((d) => (
+                  <div
+                    key={d.id}
+                    className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft"
+                  >
+                    <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{d.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{d.address || "未填地址"}</p>
+                      <div className="flex gap-1 mt-1">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">
+                          {d.store}
+                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
+                          約 {(((d.id.charCodeAt(0) % 15) + 1) / 10).toFixed(1)} km
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {mapDeals.length === 0 && (
+                  <div className="py-8 text-center text-muted-foreground text-sm">
+                    沒有符合的店家
+                  </div>
+                )}
               </div>
-            ))}
+            </div>
           </>
         )}
 
+        {/* === 收藏與常去店家優惠 === */}
         {tab === "frequent" && (
           <>
             <div className="p-3 rounded-2xl bg-tertiary/30 text-xs text-muted-foreground">
-              💡 根據你本月的消費習慣，推薦你常去店家的優惠
+              💡 根據你本月的消費習慣 + 收藏的店家，推薦相關優惠
             </div>
 
-            {frequentStores.length === 0 ? (
-              <div className="py-12 text-center text-muted-foreground">
-                <StoreIcon className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">還沒有店家消費紀錄</p>
-                <p className="text-xs mt-1">記帳時選擇店家，這裡就會出現相關優惠</p>
-              </div>
-            ) : (
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {frequentStores.map((s) => (
-                  <div
-                    key={s.name}
-                    className="flex-shrink-0 px-3 py-1.5 rounded-full bg-card border border-border text-xs"
-                  >
-                    {s.name} <span className="text-muted-foreground">×{s.count}</span>
-                  </div>
-                ))}
+            {/* 收藏的優惠 */}
+            {favoriteDeals.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
+                  <BookmarkCheck className="w-3.5 h-3.5" /> 我收藏的優惠
+                </p>
+                <div className="space-y-2">
+                  {favoriteDeals.map((d) => (
+                    <DealCard
+                      key={d.id}
+                      d={d}
+                      isMine={d.authorId === user?.id}
+                      isFav
+                      onLike={() => likeDeal(d.id)}
+                      onFav={() => toggleFavoriteDeal(d.id)}
+                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
-            {frequentDeals.length > 0 ? (
-              frequentDeals.map((d) => (
-                <DealCard
-                  key={d.id}
-                  d={d}
-                  isMine={d.authorId === user?.id}
-                  onLike={() => likeDeal(d.id)}
-                  onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
-                />
-              ))
-            ) : frequentStores.length > 0 ? (
-              <div className="py-8 text-center text-muted-foreground text-sm">
-                你常去的店家目前還沒有優惠
-              </div>
-            ) : null}
+            {/* 常去店家清單（可加入收藏） */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
+                你的常去店家（本月）
+              </p>
+              {frequentStores.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">
+                  還沒有店家消費紀錄，記帳時選店家即可累積
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {frequentStores.map((s) => {
+                    const fav = favoriteStores.includes(s.name);
+                    return (
+                      <button
+                        key={s.name}
+                        onClick={() => toggleFavoriteStore(s.name)}
+                        className={`p-3 rounded-2xl border text-left ${
+                          fav ? "bg-primary-soft border-primary/40" : "bg-card border-border/60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-sm">{s.name}</p>
+                          <Star className={`w-4 h-4 ${fav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">本月去 {s.count} 次</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* 對應的優惠 */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
+                常去店家有這些優惠
+              </p>
+              {frequentDeals.length > 0 ? (
+                <div className="space-y-2">
+                  {frequentDeals.map((d) => (
+                    <DealCard
+                      key={d.id}
+                      d={d}
+                      isMine={d.authorId === user?.id}
+                      isFav={favoriteDealIds.includes(d.id)}
+                      onLike={() => likeDeal(d.id)}
+                      onFav={() => toggleFavoriteDeal(d.id)}
+                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-muted-foreground text-sm">
+                  你常去的店家目前還沒有相關優惠
+                </div>
+              )}
+            </div>
           </>
         )}
       </div>
@@ -184,18 +282,18 @@ function DealsPage() {
 }
 
 function DealCard({
-  d, isMine, onLike, onDelete,
+  d, isMine, isFav, onLike, onFav, onDelete,
 }: {
   d: ReturnType<typeof useAppStore.getState>["deals"][number];
   isMine: boolean;
+  isFav: boolean;
   onLike: () => void;
+  onFav: () => void;
   onDelete: () => void;
 }) {
   return (
     <div className="rounded-3xl bg-card border border-border/60 shadow-soft overflow-hidden">
-      {d.photo && (
-        <img src={d.photo} alt={d.title} className="w-full h-40 object-cover" />
-      )}
+      {d.photo && <img src={d.photo} alt={d.title} className="w-full h-40 object-cover" />}
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="flex-1 min-w-0">
@@ -214,38 +312,31 @@ function DealCard({
               </p>
             )}
           </div>
-          {isMine && (
-            <div className="flex flex-col gap-1">
-              <Link
-                to="/deals/edit/$id"
-                params={{ id: d.id }}
-                className="p-1 rounded text-muted-foreground"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </Link>
-              <button onClick={onDelete} className="p-1 rounded text-muted-foreground">
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
-          )}
+          <div className="flex flex-col gap-1">
+            <button onClick={onFav} className="p-1 rounded text-muted-foreground">
+              {isFav ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
+            </button>
+            {isMine && (
+              <>
+                <Link to="/deals/edit/$id" params={{ id: d.id }} className="p-1 rounded text-muted-foreground">
+                  <Pencil className="w-3.5 h-3.5" />
+                </Link>
+                <button onClick={onDelete} className="p-1 rounded text-muted-foreground">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
         </div>
         <p className="text-sm text-muted-foreground leading-relaxed">{d.description}</p>
         {d.url && (
-          <a
-            href={d.url}
-            target="_blank"
-            rel="noreferrer"
-            className="inline-flex items-center gap-1 text-xs text-primary mt-2"
-          >
+          <a href={d.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2">
             查看詳情 <ExternalLink className="w-3 h-3" />
           </a>
         )}
         <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
           <span className="text-xs text-muted-foreground">分享：{d.authorName}</span>
-          <button
-            onClick={onLike}
-            className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive"
-          >
+          <button onClick={onLike} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
             <Heart className="w-3.5 h-3.5" /> {d.likes}
           </button>
         </div>
@@ -256,7 +347,6 @@ function DealCard({
 
 // 模擬地圖：把優惠店家以位置散點呈現
 function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["deals"] }) {
-  // 將經緯度正規化到 0-1 範圍方便畫散點
   if (deals.length === 0) {
     return (
       <div className="h-56 rounded-3xl bg-gradient-cool/30 border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
@@ -278,7 +368,6 @@ function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["de
 
   return (
     <div className="relative h-64 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[linear-gradient(135deg,#E8EDE4_0%,#DDE5E8_100%)]">
-      {/* 模擬地圖網格 */}
       <svg className="absolute inset-0 w-full h-full opacity-30">
         {Array.from({ length: 8 }).map((_, i) => (
           <line key={`h${i}`} x1="0" y1={`${i * 12.5}%`} x2="100%" y2={`${i * 12.5}%`} stroke="#9DB4C0" strokeWidth="0.5" />
@@ -288,17 +377,18 @@ function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["de
         ))}
       </svg>
 
-      {/* 標記 */}
+      {/* 中心標示「我的位置」 */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+        <div className="w-3 h-3 rounded-full bg-tertiary border-2 border-card shadow-soft animate-pulse" />
+        <p className="text-[9px] font-bold text-tertiary-foreground mt-1 -translate-x-3">我的位置</p>
+      </div>
+
       {deals.map((d) => {
         const left = span(d.lng!, minLng, maxLng);
         const top = 100 - span(d.lat!, minLat, maxLat);
         return (
-          <div
-            key={d.id}
-            className="absolute -translate-x-1/2 -translate-y-full"
-            style={{ left: `${left}%`, top: `${top}%` }}
-          >
-            <div className="flex flex-col items-center group">
+          <div key={d.id} className="absolute -translate-x-1/2 -translate-y-full" style={{ left: `${left}%`, top: `${top}%` }}>
+            <div className="flex flex-col items-center">
               <div className="bg-card text-[10px] font-bold px-2 py-0.5 rounded-full shadow-soft mb-1 whitespace-nowrap max-w-[100px] truncate">
                 {d.store}
               </div>

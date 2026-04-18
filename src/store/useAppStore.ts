@@ -62,7 +62,35 @@ export interface User {
   email: string;
   nickname: string;
   avatar: string;
+  gender?: "male" | "female" | "other" | "";
+  birthday?: string; // YYYY-MM-DD
+  phone?: string;
+  monthlyIncome?: number;
+  savingTarget?: number;
+  bio?: string;
 }
+
+export interface CarrierLink {
+  id: string;
+  type: "mobile_barcode" | "easycard" | "credit_card" | "linepay" | "jkos";
+  label: string;
+  account: string; // 載具號碼 / 卡號末四碼
+  enabled: boolean; // 是否啟用自動記帳
+  linkedAt: string;
+}
+
+export interface AutoTxnLog {
+  id: string;
+  source: string; // 載具名稱
+  amount: number;
+  store: string;
+  category: string;
+  date: string;
+  imported: boolean; // 是否已匯入記帳
+}
+
+export type AppTheme = "morandi" | "ocean" | "sakura" | "midnight" | "forest";
+export type AppMode = "normal" | "savage" | "gentle" | "cheer" | "zen";
 
 interface AppState {
   user: User | null;
@@ -88,10 +116,42 @@ interface AppState {
   abnormalSpendAlertEnabled: boolean;
   billReminderEnabled: boolean;
 
+  // 連動 / 自動記帳
+  carriers: CarrierLink[];
+  autoTxnEnabled: boolean;
+  autoTxnLogs: AutoTxnLog[];
+
+  // 收藏優惠 & 主題
+  favoriteDealIds: string[];
+  favoriteStores: string[];
+  ownedThemes: AppTheme[];
+  ownedModes: AppMode[];
+  ownedAvatars: string[];
+  currentTheme: AppTheme;
+  currentMode: AppMode;
+
   // auth
   login: (email: string, nickname?: string) => void;
   logout: () => void;
-  updateProfile: (data: Partial<Pick<User, "nickname" | "avatar">>) => void;
+  updateProfile: (data: Partial<User>) => void;
+
+  // 連動 / 自動記帳
+  addCarrier: (c: Omit<CarrierLink, "id" | "linkedAt">) => void;
+  updateCarrier: (id: string, c: Partial<CarrierLink>) => void;
+  removeCarrier: (id: string) => void;
+  toggleAutoTxn: () => void;
+  importAutoTxn: (id: string) => void;
+  ignoreAutoTxn: (id: string) => void;
+  simulateAutoTxn: () => void;
+
+  // 收藏 & 主題
+  toggleFavoriteDeal: (id: string) => void;
+  toggleFavoriteStore: (name: string) => void;
+  setTheme: (t: AppTheme) => void;
+  setMode: (m: AppMode) => void;
+  unlockTheme: (t: AppTheme) => void;
+  unlockMode: (m: AppMode) => void;
+  unlockAvatar: (a: string) => void;
 
   setWeeklyBudget: (amount: number) => void;
 
@@ -224,6 +284,18 @@ export const useAppStore = create<AppState>()(
       abnormalSpendAlertEnabled: true,
       billReminderEnabled: true,
 
+      carriers: [],
+      autoTxnEnabled: false,
+      autoTxnLogs: [],
+
+      favoriteDealIds: [],
+      favoriteStores: [],
+      ownedThemes: ["morandi"],
+      ownedModes: ["normal"],
+      ownedAvatars: ["🌿", "🌸", "🌻", "🍃", "🌙", "⭐", "🐱", "🐰", "🦊", "🐻", "🍀", "☁️"],
+      currentTheme: "morandi",
+      currentMode: "normal",
+
       login: (email, nickname) =>
         set({
           user: {
@@ -338,6 +410,93 @@ export const useAppStore = create<AppState>()(
       toggleBillReminder: () =>
         set((s) => ({ billReminderEnabled: !s.billReminderEnabled })),
 
+      // 連動 / 自動記帳
+      addCarrier: (c) =>
+        set((s) => ({
+          carriers: [
+            { ...c, id: uid(), linkedAt: new Date().toISOString() },
+            ...s.carriers,
+          ],
+        })),
+      updateCarrier: (id, c) =>
+        set((s) => ({
+          carriers: s.carriers.map((x) => (x.id === id ? { ...x, ...c } : x)),
+        })),
+      removeCarrier: (id) =>
+        set((s) => ({ carriers: s.carriers.filter((x) => x.id !== id) })),
+      toggleAutoTxn: () => set((s) => ({ autoTxnEnabled: !s.autoTxnEnabled })),
+      importAutoTxn: (id) => {
+        const log = get().autoTxnLogs.find((l) => l.id === id);
+        if (!log) return;
+        get().addTransaction({
+          type: "expense",
+          amount: log.amount,
+          category: log.category,
+          store: log.store,
+          note: `[自動] ${log.source}`,
+          date: log.date,
+        });
+        set((s) => ({
+          autoTxnLogs: s.autoTxnLogs.map((l) =>
+            l.id === id ? { ...l, imported: true } : l
+          ),
+        }));
+      },
+      ignoreAutoTxn: (id) =>
+        set((s) => ({ autoTxnLogs: s.autoTxnLogs.filter((l) => l.id !== id) })),
+      simulateAutoTxn: () => {
+        const samples = [
+          { store: "全聯", category: "餐飲", amount: 245 },
+          { store: "7-11", category: "餐飲", amount: 89 },
+          { store: "星巴克", category: "餐飲", amount: 165 },
+          { store: "蝦皮", category: "購物", amount: 590 },
+          { store: "麥當勞", category: "餐飲", amount: 130 },
+        ];
+        const carriers = get().carriers.filter((c) => c.enabled);
+        const source = carriers[0]?.label || "手機載具";
+        const pick = samples[Math.floor(Math.random() * samples.length)];
+        set((s) => ({
+          autoTxnLogs: [
+            {
+              id: uid(),
+              source,
+              ...pick,
+              date: new Date().toISOString(),
+              imported: false,
+            },
+            ...s.autoTxnLogs,
+          ],
+        }));
+      },
+
+      // 收藏 & 主題
+      toggleFavoriteDeal: (id) =>
+        set((s) => ({
+          favoriteDealIds: s.favoriteDealIds.includes(id)
+            ? s.favoriteDealIds.filter((x) => x !== id)
+            : [...s.favoriteDealIds, id],
+        })),
+      toggleFavoriteStore: (name) =>
+        set((s) => ({
+          favoriteStores: s.favoriteStores.includes(name)
+            ? s.favoriteStores.filter((x) => x !== name)
+            : [...s.favoriteStores, name],
+        })),
+      setTheme: (t) => set({ currentTheme: t }),
+      setMode: (m) => set({ currentMode: m }),
+      unlockTheme: (t) =>
+        set((s) =>
+          s.ownedThemes.includes(t) ? s : { ownedThemes: [...s.ownedThemes, t] }
+        ),
+      unlockMode: (m) =>
+        set((s) =>
+          s.ownedModes.includes(m) ? s : { ownedModes: [...s.ownedModes, m] }
+        ),
+      unlockAvatar: (a) =>
+        set((s) =>
+          s.ownedAvatars.includes(a) ? s : { ownedAvatars: [...s.ownedAvatars, a] }
+        ),
+
       clearAllData: () =>
         set({
           transactions: [],
@@ -349,6 +508,10 @@ export const useAppStore = create<AppState>()(
           incomeCategories: DEFAULT_INCOME_CATS,
           stores: DEFAULT_STORES,
           bills: [],
+          carriers: [],
+          autoTxnLogs: [],
+          favoriteDealIds: [],
+          favoriteStores: [],
         }),
     }),
     { name: "money-app-store" }

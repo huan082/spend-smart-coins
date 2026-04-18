@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import {
-  Bell, Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
-  TrendingDown, Sparkles, AlertTriangle,
+  Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
+  TrendingDown, Sparkles, AlertTriangle, Smartphone, Zap, User as UserIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
@@ -21,6 +21,7 @@ function SettingsPage() {
     abnormalSpendAlertEnabled, toggleAbnormalSpendAlert,
     billReminderEnabled, toggleBillReminder,
     logout, transactions, goals, clearAllData,
+    autoTxnEnabled, toggleAutoTxn, carriers,
   } = useAppStore();
   const navigate = useNavigate();
 
@@ -85,7 +86,29 @@ function SettingsPage() {
           </div>
         </Section>
 
+        <Section title="自動記帳 / 連動">
+          <Link to="/carriers" className="block">
+            <Item icon={Smartphone} label="連動管理" desc={`已連動 ${carriers.length} 組（手機載具、電子支付）`} />
+          </Link>
+          <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0">
+            <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
+              <Zap className="w-4 h-4" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium">啟用自動記帳</p>
+              <p className="text-[11px] text-muted-foreground">從載具自動同步消費</p>
+            </div>
+            <SwitchBtn checked={autoTxnEnabled} onChange={toggleAutoTxn} />
+          </div>
+          <Link to="/auto-ledger" className="block">
+            <Item icon={Sparkles} label="待匯入紀錄" desc="檢視自動抓取的消費" />
+          </Link>
+        </Section>
+
         <Section title="帳號與安全">
+          <Link to="/profile" className="block">
+            <Item icon={UserIcon} label="個人資料管理" desc="暱稱、頭像、財務資訊" />
+          </Link>
           <Item icon={Shield} label="帳號安全" desc="變更密碼" />
           <Item icon={Lock} label="隱私保護" desc="App 鎖" />
           <Item icon={Lock} label="加密服務" desc="端對端加密" />
