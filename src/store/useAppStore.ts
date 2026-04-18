@@ -62,7 +62,35 @@ export interface User {
   email: string;
   nickname: string;
   avatar: string;
+  gender?: "male" | "female" | "other" | "";
+  birthday?: string; // YYYY-MM-DD
+  phone?: string;
+  monthlyIncome?: number;
+  savingTarget?: number;
+  bio?: string;
 }
+
+export interface CarrierLink {
+  id: string;
+  type: "mobile_barcode" | "easycard" | "credit_card" | "linepay" | "jkos";
+  label: string;
+  account: string; // 載具號碼 / 卡號末四碼
+  enabled: boolean; // 是否啟用自動記帳
+  linkedAt: string;
+}
+
+export interface AutoTxnLog {
+  id: string;
+  source: string; // 載具名稱
+  amount: number;
+  store: string;
+  category: string;
+  date: string;
+  imported: boolean; // 是否已匯入記帳
+}
+
+export type AppTheme = "morandi" | "ocean" | "sakura" | "midnight" | "forest";
+export type AppMode = "normal" | "savage" | "gentle" | "cheer" | "zen";
 
 interface AppState {
   user: User | null;
@@ -87,6 +115,20 @@ interface AppState {
   dealRecommendEnabled: boolean;
   abnormalSpendAlertEnabled: boolean;
   billReminderEnabled: boolean;
+
+  // 連動 / 自動記帳
+  carriers: CarrierLink[];
+  autoTxnEnabled: boolean;
+  autoTxnLogs: AutoTxnLog[];
+
+  // 收藏優惠 & 主題
+  favoriteDealIds: string[];
+  favoriteStores: string[];
+  ownedThemes: AppTheme[];
+  ownedModes: AppMode[];
+  ownedAvatars: string[];
+  currentTheme: AppTheme;
+  currentMode: AppMode;
 
   // auth
   login: (email: string, nickname?: string) => void;
