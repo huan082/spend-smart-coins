@@ -156,10 +156,8 @@ function DealsPage() {
               </p>
               <div className="space-y-2">
                 {mapDeals.map((d) => (
-                  <Link
+                  <div
                     key={d.id}
-                    to="/deals/$id" as any
-                    params={{ id: d.id } as any}
                     className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft"
                   >
                     <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center flex-shrink-0">
@@ -173,11 +171,11 @@ function DealsPage() {
                           {d.store}
                         </span>
                         <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                          約 {(Math.random() * 1.5 + 0.1).toFixed(1)} km
+                          約 {(((d.id.charCodeAt(0) % 15) + 1) / 10).toFixed(1)} km
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </div>
                 ))}
                 {mapDeals.length === 0 && (
                   <div className="py-8 text-center text-muted-foreground text-sm">
