@@ -1,9 +1,9 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import {
-  Bell, Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
-  TrendingDown, Sparkles, AlertTriangle,
+  Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
+  TrendingDown, Sparkles, AlertTriangle, Smartphone, Zap, User as UserIcon,
 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
