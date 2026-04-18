@@ -133,7 +133,25 @@ interface AppState {
   // auth
   login: (email: string, nickname?: string) => void;
   logout: () => void;
-  updateProfile: (data: Partial<Pick<User, "nickname" | "avatar">>) => void;
+  updateProfile: (data: Partial<User>) => void;
+
+  // 連動 / 自動記帳
+  addCarrier: (c: Omit<CarrierLink, "id" | "linkedAt">) => void;
+  updateCarrier: (id: string, c: Partial<CarrierLink>) => void;
+  removeCarrier: (id: string) => void;
+  toggleAutoTxn: () => void;
+  importAutoTxn: (id: string) => void;
+  ignoreAutoTxn: (id: string) => void;
+  simulateAutoTxn: () => void;
+
+  // 收藏 & 主題
+  toggleFavoriteDeal: (id: string) => void;
+  toggleFavoriteStore: (name: string) => void;
+  setTheme: (t: AppTheme) => void;
+  setMode: (m: AppMode) => void;
+  unlockTheme: (t: AppTheme) => void;
+  unlockMode: (m: AppMode) => void;
+  unlockAvatar: (a: string) => void;
 
   setWeeklyBudget: (amount: number) => void;
 
