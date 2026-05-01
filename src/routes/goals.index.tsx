@@ -20,6 +20,9 @@ function detectShop(url: string) {
 
 function GoalsPage() {
   const { goals, deleteGoal, updateGoal } = useAppStore();
+  const [filter, setFilter] = useState<"all" | "need" | "want">("all");
+
+  const list = goals.filter((g) => filter === "all" || g.priority === filter);
 
   // 模擬降價：點按鈕讓價格 -10%
   const simulateDrop = (id: string, current: number) => {
@@ -41,6 +44,25 @@ function GoalsPage() {
       }
     >
       <div className="px-5 py-4 space-y-3">
+        {/* 必要 / 想要 篩選 */}
+        <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-2xl">
+          {([
+            { k: "all" as const, l: "全部" },
+            { k: "need" as const, l: "✅ 必要" },
+            { k: "want" as const, l: "💖 想要" },
+          ]).map(({ k, l }) => (
+            <button
+              key={k}
+              onClick={() => setFilter(k)}
+              className={`py-2 rounded-xl text-xs font-bold ${
+                filter === k ? "bg-card shadow-soft" : "text-muted-foreground"
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+
         {goals.length === 0 && (
           <div className="py-16 text-center">
             <p className="text-5xl mb-3">🎯</p>
@@ -55,7 +77,7 @@ function GoalsPage() {
           </div>
         )}
 
-        {goals.map((g) => {
+        {list.map((g) => {
           const pct = Math.min(100, (g.saved / g.targetAmount) * 100);
           const dropped =
             g.originalPrice && g.currentPrice && g.currentPrice < g.originalPrice;
@@ -66,7 +88,23 @@ function GoalsPage() {
             >
               <div className="flex justify-between items-start mb-3 gap-2">
                 <div className="flex-1 min-w-0">
-                  <p className="font-display font-bold">{g.name}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="font-display font-bold">{g.name}</p>
+                    {g.priority && (
+                      <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-bold ${
+                        g.priority === "need"
+                          ? "bg-success/20 text-success"
+                          : "bg-accent/40 text-accent-foreground"
+                      }`}>
+                        {g.priority === "need" ? "必要" : "想要"}
+                      </span>
+                    )}
+                    {g.category && (
+                      <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-muted text-muted-foreground">
+                        {g.category}
+                      </span>
+                    )}
+                  </div>
                   {g.deadline && (
                     <p className="text-xs text-muted-foreground">
                       目標日 {g.deadline}

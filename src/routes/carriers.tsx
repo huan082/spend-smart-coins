@@ -13,8 +13,6 @@ const TYPE_META: Record<CarrierLink["type"], { label: string; icon: any; color: 
   mobile_barcode: { label: "手機條碼載具", icon: QrCode, color: "bg-primary-soft text-primary" },
   easycard: { label: "悠遊卡", icon: CreditCard, color: "bg-tertiary/40" },
   credit_card: { label: "信用卡", icon: CreditCard, color: "bg-secondary/40" },
-  linepay: { label: "LINE Pay", icon: Wallet, color: "bg-success/20" },
-  jkos: { label: "街口支付", icon: Wallet, color: "bg-warning/20" },
 };
 
 function CarriersPage() {
@@ -48,7 +46,7 @@ function CarriersPage() {
             <p className="font-bold">自動記帳</p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            連結手機載具或電子支付，發票與消費自動同步成記帳，再也不用手動輸入。
+            連結手機條碼載具、悠遊卡或信用卡，電子發票與消費自動同步成記帳，再也不用手動輸入。
           </p>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">啟用自動記帳</span>

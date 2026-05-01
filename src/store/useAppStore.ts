@@ -23,6 +23,9 @@ export interface Goal {
   currentPrice?: number;
   originalPrice?: number;
   notifyOnDrop: boolean;
+  priority?: "need" | "want"; // 必要 / 想要
+  category?: string; // 例如 旅遊、3C、教育...
+  photo?: string; // base64
 }
 
 export interface Deal {
@@ -72,7 +75,7 @@ export interface User {
 
 export interface CarrierLink {
   id: string;
-  type: "mobile_barcode" | "easycard" | "credit_card" | "linepay" | "jkos";
+  type: "mobile_barcode" | "easycard" | "credit_card";
   label: string;
   account: string; // 載具號碼 / 卡號末四碼
   enabled: boolean; // 是否啟用自動記帳
@@ -107,6 +110,11 @@ interface AppState {
   stores: string[];
   bills: Bill[];
 
+  // 各類別週預算
+  categoryBudgets: Record<string, number>;
+  // 預算超支警告觸發百分比 (e.g. 80 = 80%)
+  budgetAlertThreshold: number;
+
   // settings
   budgetAlertEnabled: boolean;
   ledgerReminderEnabled: boolean;
@@ -115,6 +123,7 @@ interface AppState {
   dealRecommendEnabled: boolean;
   abnormalSpendAlertEnabled: boolean;
   billReminderEnabled: boolean;
+  biometricEnabled: boolean;
 
   // 連動 / 自動記帳
   carriers: CarrierLink[];
@@ -154,6 +163,9 @@ interface AppState {
   unlockAvatar: (a: string) => void;
 
   setWeeklyBudget: (amount: number) => void;
+  setCategoryBudget: (category: string, amount: number) => void;
+  setBudgetAlertThreshold: (pct: number) => void;
+  toggleBiometric: () => void;
 
   addTransaction: (t: Omit<Transaction, "id">) => void;
   updateTransaction: (id: string, t: Partial<Transaction>) => void;
@@ -225,11 +237,66 @@ export const useAppStore = create<AppState>()(
       transactions: [],
       goals: [],
       deals: [
+        // ===== 優惠貼文（社群分享） =====
         {
-          id: "seed1",
+          id: "post1",
+          title: "蝦皮 11.11 跨店滿千折百",
+          store: "蝦皮",
+          description: "全站跨店滿 1000 折 100，再加碼運費補助，記得先領券！",
+          url: "https://shopee.tw",
+          authorId: "system",
+          authorName: "省錢達人 Annie",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+          likes: 42,
+        },
+        {
+          id: "post2",
+          title: "Uniqlo 感謝祭 全館 9 折",
+          store: "Uniqlo",
+          description: "限時三天，加入會員再享生日禮 100 元。換季衣物超划算。",
+          authorId: "system",
+          authorName: "穿搭小編",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(),
+          likes: 31,
+        },
+        {
+          id: "post3",
+          title: "誠品書店會員日 9 折",
+          store: "誠品",
+          description: "每月最後一個週四，全館書籍 9 折，文具 95 折。",
+          authorId: "system",
+          authorName: "閱讀控",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 24).toISOString(),
+          likes: 18,
+        },
+        {
+          id: "post4",
+          title: "momo 中元購物節",
+          store: "momo",
+          description: "指定 3C 折 1500，家電下殺 5 折，刷指定信用卡再 9 折。",
+          url: "https://www.momoshop.com.tw",
+          authorId: "system",
+          authorName: "家電哥",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 28).toISOString(),
+          likes: 27,
+        },
+        {
+          id: "post5",
+          title: "瓦城慶生月 89 折",
+          store: "瓦城",
+          description: "壽星本人到店出示證件，當月用餐全桌 89 折！",
+          authorId: "system",
+          authorName: "美食情報",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
+          likes: 15,
+        },
+
+        // ===== 好康地圖（實體店家位置） =====
+        {
+          id: "map_pxmart",
           title: "全聯週末蔬果 85 折",
           store: "全聯",
-          description: "週六日全店蔬果 85 折，會員另享紅利雙倍。",
+          description: "週六日全店蔬果 85 折，會員 PX Pay 結帳再享回饋。",
           authorId: "system",
           authorName: "小編",
           createdAt: new Date().toISOString(),
@@ -239,7 +306,46 @@ export const useAppStore = create<AppState>()(
           address: "台北市中正區忠孝西路一段 49 號",
         },
         {
-          id: "seed2",
+          id: "map_711",
+          title: "7-11 City Cafe 第二杯半價",
+          store: "7-11",
+          description: "整周大杯美式、拿鐵第二杯半價，OPEN POINT 會員加碼集點。",
+          authorId: "system",
+          authorName: "小編",
+          createdAt: new Date().toISOString(),
+          likes: 33,
+          lat: 25.0455,
+          lng: 121.5170,
+          address: "台北市中正區館前路 6 號",
+        },
+        {
+          id: "map_familymart",
+          title: "全家鮮食買 2 送 1",
+          store: "全家",
+          description: "指定鮮食、飯糰、便當買 2 送 1，限會員 App 出示載具。",
+          authorId: "system",
+          authorName: "小編",
+          createdAt: new Date().toISOString(),
+          likes: 21,
+          lat: 25.0421,
+          lng: 121.5360,
+          address: "台北市大安區忠孝東路四段 55 號",
+        },
+        {
+          id: "map_hilife",
+          title: "萊爾富指定飲料 39 元",
+          store: "萊爾富",
+          description: "Hi-Café 中杯拿鐵 39 元起，搭配 Hi 點折抵更划算。",
+          authorId: "system",
+          authorName: "小編",
+          createdAt: new Date().toISOString(),
+          likes: 9,
+          lat: 25.0510,
+          lng: 121.5280,
+          address: "台北市中山區南京西路 18 號",
+        },
+        {
+          id: "map_starbucks",
           title: "星巴克買一送一",
           store: "星巴克",
           description: "週三 14:00-20:00 大杯指定飲品買一送一。",
@@ -252,7 +358,7 @@ export const useAppStore = create<AppState>()(
           address: "台北市信義區市府路 45 號",
         },
         {
-          id: "seed3",
+          id: "map_mcd",
           title: "麥當勞甜心卡",
           store: "麥當勞",
           description: "出示甜心卡享指定餐點優惠。",
@@ -263,6 +369,19 @@ export const useAppStore = create<AppState>()(
           lat: 25.0330,
           lng: 121.5654,
           address: "台北市信義區松壽路 12 號",
+        },
+        {
+          id: "map_watsons",
+          title: "屈臣氏寵 i 會員雙倍 e 點",
+          store: "屈臣氏",
+          description: "指定保養品、口罩第二件 6 折，會員 e 點雙倍累積。",
+          authorId: "system",
+          authorName: "小編",
+          createdAt: new Date().toISOString(),
+          likes: 14,
+          lat: 25.0392,
+          lng: 121.5500,
+          address: "台北市大安區敦化南路一段 200 號",
         },
       ],
       points: 0,
@@ -276,6 +395,9 @@ export const useAppStore = create<AppState>()(
         { id: "b2", name: "電費", amount: 1200, dueDay: 25, enabled: true, category: "居家" },
       ],
 
+      categoryBudgets: {},
+      budgetAlertThreshold: 80,
+
       budgetAlertEnabled: true,
       ledgerReminderEnabled: true,
       ledgerReminderTime: "20:00",
@@ -283,6 +405,7 @@ export const useAppStore = create<AppState>()(
       dealRecommendEnabled: true,
       abnormalSpendAlertEnabled: true,
       billReminderEnabled: true,
+      biometricEnabled: false,
 
       carriers: [],
       autoTxnEnabled: false,
@@ -310,6 +433,16 @@ export const useAppStore = create<AppState>()(
         set((s) => (s.user ? { user: { ...s.user, ...data } } : s)),
 
       setWeeklyBudget: (amount) => set({ weeklyBudget: amount }),
+      setCategoryBudget: (category, amount) =>
+        set((s) => {
+          const next = { ...s.categoryBudgets };
+          if (amount > 0) next[category] = amount;
+          else delete next[category];
+          return { categoryBudgets: next };
+        }),
+      setBudgetAlertThreshold: (pct) =>
+        set({ budgetAlertThreshold: Math.max(0, Math.min(100, pct)) }),
+      toggleBiometric: () => set((s) => ({ biometricEnabled: !s.biometricEnabled })),
 
       addTransaction: (t) =>
         set((s) => ({ transactions: [{ ...t, id: uid() }, ...s.transactions] })),
@@ -504,6 +637,7 @@ export const useAppStore = create<AppState>()(
           points: 0,
           pointHistory: [],
           weeklyBudget: 0,
+          categoryBudgets: {},
           expenseCategories: DEFAULT_EXPENSE_CATS,
           incomeCategories: DEFAULT_INCOME_CATS,
           stores: DEFAULT_STORES,
