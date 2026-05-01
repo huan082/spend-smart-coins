@@ -46,7 +46,7 @@ function CarriersPage() {
             <p className="font-bold">自動記帳</p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            連結手機載具或電子支付，發票與消費自動同步成記帳，再也不用手動輸入。
+            連結手機條碼載具、悠遊卡或信用卡，電子發票與消費自動同步成記帳，再也不用手動輸入。
           </p>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">啟用自動記帳</span>
