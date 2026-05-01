@@ -23,6 +23,9 @@ export interface Goal {
   currentPrice?: number;
   originalPrice?: number;
   notifyOnDrop: boolean;
+  priority?: "need" | "want"; // 必要 / 想要
+  category?: string; // 例如 旅遊、3C、教育...
+  photo?: string; // base64
 }
 
 export interface Deal {
