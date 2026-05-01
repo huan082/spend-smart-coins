@@ -13,8 +13,6 @@ const TYPE_META: Record<CarrierLink["type"], { label: string; icon: any; color: 
   mobile_barcode: { label: "手機條碼載具", icon: QrCode, color: "bg-primary-soft text-primary" },
   easycard: { label: "悠遊卡", icon: CreditCard, color: "bg-tertiary/40" },
   credit_card: { label: "信用卡", icon: CreditCard, color: "bg-secondary/40" },
-  linepay: { label: "LINE Pay", icon: Wallet, color: "bg-success/20" },
-  jkos: { label: "街口支付", icon: Wallet, color: "bg-warning/20" },
 };
 
 function CarriersPage() {
