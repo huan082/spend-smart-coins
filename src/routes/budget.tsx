@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getWeekRange, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
-import { Sparkles, AlertCircle } from "lucide-react";
+import { Sparkles, AlertCircle, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/budget")({
   component: BudgetPage,
@@ -10,7 +10,12 @@ export const Route = createFileRoute("/budget")({
 });
 
 function BudgetPage() {
-  const { weeklyBudget, setWeeklyBudget, transactions, addPoints } = useAppStore();
+  const {
+    weeklyBudget, setWeeklyBudget, transactions, addPoints,
+    expenseCategories, categoryBudgets, setCategoryBudget,
+    budgetAlertThreshold, setBudgetAlertThreshold,
+    budgetAlertEnabled, toggleBudgetAlert,
+  } = useAppStore();
   const [input, setInput] = useState(weeklyBudget ? weeklyBudget.toString() : "");
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
@@ -64,6 +69,18 @@ function BudgetPage() {
 
   const overBudget = weeklyBudget > 0 && weekSpent > weeklyBudget;
   const pct = weeklyBudget > 0 ? Math.min(100, (weekSpent / weeklyBudget) * 100) : 0;
+
+  // 各類別本週支出
+  const categorySpent = useMemo(() => {
+    const map = new Map<string, number>();
+    transactions.forEach((t) => {
+      const d = new Date(t.date);
+      if (t.type === "expense" && d >= ws && d < we) {
+        map.set(t.category, (map.get(t.category) || 0) + t.amount);
+      }
+    });
+    return map;
+  }, [transactions, ws, we]);
 
   return (
     <AppLayout title="預算管理" back="/home">
@@ -127,6 +144,101 @@ function BudgetPage() {
                   <span>已超出本週預算！注意控制支出 🌧️</span>
                 </div>
               )}
+            </div>
+
+            {/* === 預算超支警告設定 === */}
+            <div className="rounded-3xl bg-card border border-border shadow-soft p-5 space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-warning/20 flex items-center justify-center">
+                  <Bell className="w-4 h-4 text-warning" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-sm">預算超支警告</p>
+                  <p className="text-[11px] text-muted-foreground">
+                    達到設定百分比時通知你
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={toggleBudgetAlert}
+                  className={`w-11 h-6 rounded-full transition-colors relative ${
+                    budgetAlertEnabled ? "bg-primary" : "bg-muted"
+                  }`}
+                >
+                  <span
+                    className={`absolute top-0.5 w-5 h-5 rounded-full bg-card shadow-soft transition-all ${
+                      budgetAlertEnabled ? "left-[22px]" : "left-0.5"
+                    }`}
+                  />
+                </button>
+              </div>
+              {budgetAlertEnabled && (
+                <div>
+                  <div className="flex justify-between text-xs mb-2">
+                    <span className="text-muted-foreground">觸發門檻</span>
+                    <span className="font-bold text-primary">{budgetAlertThreshold}%</span>
+                  </div>
+                  <input
+                    type="range"
+                    min={50}
+                    max={100}
+                    step={5}
+                    value={budgetAlertThreshold}
+                    onChange={(e) => setBudgetAlertThreshold(Number(e.target.value))}
+                    className="w-full accent-primary"
+                  />
+                  <div className="flex justify-between text-[10px] text-muted-foreground mt-1">
+                    <span>50%</span>
+                    <span>80%</span>
+                    <span>100%</span>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* === 各類別預算 === */}
+            <div className="rounded-3xl bg-card border border-border shadow-soft p-5">
+              <p className="font-bold mb-1">各類別週預算</p>
+              <p className="text-[11px] text-muted-foreground mb-3">
+                空白即不設限，超過會在這裡顯示警告
+              </p>
+              <div className="space-y-3">
+                {expenseCategories.map((c) => {
+                  const spent = categorySpent.get(c.name) || 0;
+                  const limit = categoryBudgets[c.name] || 0;
+                  const cpct = limit > 0 ? Math.min(100, (spent / limit) * 100) : 0;
+                  const over = limit > 0 && spent > limit;
+                  return (
+                    <div key={c.name} className="space-y-1.5">
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">{c.emoji}</span>
+                        <span className="text-sm font-medium flex-1">{c.name}</span>
+                        <span className="text-xs text-muted-foreground">已花 ${spent}</span>
+                        <input
+                          type="number"
+                          value={limit || ""}
+                          onChange={(e) => setCategoryBudget(c.name, Number(e.target.value) || 0)}
+                          placeholder="—"
+                          className="w-20 px-2 py-1 rounded-lg bg-muted border border-border outline-none text-sm text-right"
+                        />
+                      </div>
+                      {limit > 0 && (
+                        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+                          <div
+                            className={`h-full rounded-full ${over ? "bg-destructive" : "bg-gradient-primary"}`}
+                            style={{ width: `${cpct}%` }}
+                          />
+                        </div>
+                      )}
+                      {over && (
+                        <p className="text-[10px] text-destructive font-bold">
+                          ⚠️ 已超出 ${spent - limit}
+                        </p>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="rounded-3xl bg-gradient-warm/40 border border-accent/30 p-5">
