@@ -4,7 +4,6 @@ import { useAppStore } from "@/store/useAppStore";
 import {
   Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
   TrendingDown, Sparkles, AlertTriangle, Smartphone, Zap, User as UserIcon, Fingerprint,
-  Palette,
 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
