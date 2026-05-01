@@ -72,7 +72,7 @@ export interface User {
 
 export interface CarrierLink {
   id: string;
-  type: "mobile_barcode" | "easycard" | "credit_card" | "linepay" | "jkos";
+  type: "mobile_barcode" | "easycard" | "credit_card";
   label: string;
   account: string; // 載具號碼 / 卡號末四碼
   enabled: boolean; // 是否啟用自動記帳
@@ -107,6 +107,11 @@ interface AppState {
   stores: string[];
   bills: Bill[];
 
+  // 各類別週預算
+  categoryBudgets: Record<string, number>;
+  // 預算超支警告觸發百分比 (e.g. 80 = 80%)
+  budgetAlertThreshold: number;
+
   // settings
   budgetAlertEnabled: boolean;
   ledgerReminderEnabled: boolean;
@@ -115,6 +120,7 @@ interface AppState {
   dealRecommendEnabled: boolean;
   abnormalSpendAlertEnabled: boolean;
   billReminderEnabled: boolean;
+  biometricEnabled: boolean;
 
   // 連動 / 自動記帳
   carriers: CarrierLink[];
@@ -154,6 +160,9 @@ interface AppState {
   unlockAvatar: (a: string) => void;
 
   setWeeklyBudget: (amount: number) => void;
+  setCategoryBudget: (category: string, amount: number) => void;
+  setBudgetAlertThreshold: (pct: number) => void;
+  toggleBiometric: () => void;
 
   addTransaction: (t: Omit<Transaction, "id">) => void;
   updateTransaction: (id: string, t: Partial<Transaction>) => void;
