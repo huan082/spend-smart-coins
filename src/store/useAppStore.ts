@@ -634,6 +634,7 @@ export const useAppStore = create<AppState>()(
           points: 0,
           pointHistory: [],
           weeklyBudget: 0,
+          categoryBudgets: {},
           expenseCategories: DEFAULT_EXPENSE_CATS,
           incomeCategories: DEFAULT_INCOME_CATS,
           stores: DEFAULT_STORES,
