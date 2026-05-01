@@ -285,6 +285,9 @@ export const useAppStore = create<AppState>()(
         { id: "b2", name: "電費", amount: 1200, dueDay: 25, enabled: true, category: "居家" },
       ],
 
+      categoryBudgets: {},
+      budgetAlertThreshold: 80,
+
       budgetAlertEnabled: true,
       ledgerReminderEnabled: true,
       ledgerReminderTime: "20:00",
@@ -292,6 +295,7 @@ export const useAppStore = create<AppState>()(
       dealRecommendEnabled: true,
       abnormalSpendAlertEnabled: true,
       billReminderEnabled: true,
+      biometricEnabled: false,
 
       carriers: [],
       autoTxnEnabled: false,
@@ -319,6 +323,16 @@ export const useAppStore = create<AppState>()(
         set((s) => (s.user ? { user: { ...s.user, ...data } } : s)),
 
       setWeeklyBudget: (amount) => set({ weeklyBudget: amount }),
+      setCategoryBudget: (category, amount) =>
+        set((s) => {
+          const next = { ...s.categoryBudgets };
+          if (amount > 0) next[category] = amount;
+          else delete next[category];
+          return { categoryBudgets: next };
+        }),
+      setBudgetAlertThreshold: (pct) =>
+        set({ budgetAlertThreshold: Math.max(0, Math.min(100, pct)) }),
+      toggleBiometric: () => set((s) => ({ biometricEnabled: !s.biometricEnabled })),
 
       addTransaction: (t) =>
         set((s) => ({ transactions: [{ ...t, id: uid() }, ...s.transactions] })),
