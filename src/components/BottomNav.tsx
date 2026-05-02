@@ -1,10 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import { Home, Wallet, Target, Tag, User } from "lucide-react";
+import { Home, Wallet, PiggyBank, Tag, User } from "lucide-react";
 
 const items = [
   { to: "/home", label: "首頁", icon: Home },
   { to: "/ledger", label: "記帳", icon: Wallet },
-  { to: "/goals", label: "目標", icon: Target },
+  { to: "/plan", label: "預算&目標", icon: PiggyBank },
   { to: "/deals", label: "優惠", icon: Tag },
   { to: "/me", label: "我的", icon: User },
 ] as const;

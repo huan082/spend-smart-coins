@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, type CarrierLink } from "@/store/useAppStore";
 import { useState } from "react";
-import { Smartphone, CreditCard, Trash2, Plus, Wallet, QrCode } from "lucide-react";
+import { Smartphone, Trash2, Plus, QrCode } from "lucide-react";
 
 export const Route = createFileRoute("/carriers")({
   component: CarriersPage,
@@ -11,15 +11,13 @@ export const Route = createFileRoute("/carriers")({
 
 const TYPE_META: Record<CarrierLink["type"], { label: string; icon: any; color: string }> = {
   mobile_barcode: { label: "手機條碼載具", icon: QrCode, color: "bg-primary-soft text-primary" },
-  easycard: { label: "悠遊卡", icon: CreditCard, color: "bg-tertiary/40" },
-  credit_card: { label: "信用卡", icon: CreditCard, color: "bg-secondary/40" },
 };
 
 function CarriersPage() {
   const { carriers, addCarrier, updateCarrier, removeCarrier, autoTxnEnabled, toggleAutoTxn } =
     useAppStore();
   const [adding, setAdding] = useState(false);
-  const [type, setType] = useState<CarrierLink["type"]>("mobile_barcode");
+  const type: CarrierLink["type"] = "mobile_barcode";
   const [account, setAccount] = useState("");
   const [label, setLabel] = useState("");
 
@@ -46,7 +44,7 @@ function CarriersPage() {
             <p className="font-bold">自動記帳</p>
           </div>
           <p className="text-xs text-muted-foreground mb-3">
-            連結手機條碼載具、悠遊卡或信用卡，電子發票與消費自動同步成記帳，再也不用手動輸入。
+            連結手機條碼載具，電子發票自動同步成記帳，再也不用手動輸入。
           </p>
           <div className="flex items-center justify-between">
             <span className="text-sm font-medium">啟用自動記帳</span>
@@ -83,32 +81,13 @@ function CarriersPage() {
               className="p-4 rounded-2xl bg-card border border-border/60 shadow-soft space-y-3 mb-3"
             >
               <div>
-                <p className="text-xs font-bold text-muted-foreground mb-2">類型</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {(Object.keys(TYPE_META) as CarrierLink["type"][]).map((t) => (
-                    <button
-                      key={t}
-                      type="button"
-                      onClick={() => setType(t)}
-                      className={`px-3 py-2 rounded-xl text-xs font-medium border ${
-                        type === t
-                          ? "bg-primary text-primary-foreground border-primary"
-                          : "bg-muted border-transparent"
-                      }`}
-                    >
-                      {TYPE_META[t].label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-              <div>
                 <p className="text-xs font-bold text-muted-foreground mb-2">
-                  {type === "mobile_barcode" ? "載具條碼（/開頭）" : "卡號末四碼或帳號"}
+                  載具條碼（/開頭）
                 </p>
                 <input
                   value={account}
                   onChange={(e) => setAccount(e.target.value)}
-                  placeholder={type === "mobile_barcode" ? "/ABC1234" : "1234"}
+                  placeholder="/ABC1234"
                   className="w-full px-3 py-2 rounded-xl border border-border outline-none text-sm"
                   required
                 />
