@@ -7,9 +7,8 @@ import { Plus, X, Image as ImageIcon, Trash2 } from "lucide-react";
 export const Route = createFileRoute("/ledger/new")({
   component: NewTxn,
   head: () => ({ meta: [{ title: "新增記帳" }] }),
-  validateSearch: (s: Record<string, unknown>) => ({
-    date: typeof s.date === "string" ? s.date : undefined,
-  }),
+  validateSearch: (s: Record<string, unknown>): { date?: string } =>
+    typeof s.date === "string" ? { date: s.date } : {},
 });
 
 function NewTxn() {
