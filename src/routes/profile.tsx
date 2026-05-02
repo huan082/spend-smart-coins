@@ -11,12 +11,27 @@ export const Route = createFileRoute("/profile")({
   head: () => ({ meta: [{ title: "個人資料" }] }),
 });
 
-const THEME_META: Record<AppTheme, { name: string; swatch: string }> = {
-  morandi: { name: "莫蘭迪", swatch: "linear-gradient(135deg,#B8C5B0,#D4C5B0)" },
-  ocean: { name: "海洋", swatch: "linear-gradient(135deg,#7CB4C6,#3D6B89)" },
-  sakura: { name: "櫻花", swatch: "linear-gradient(135deg,#F5C2C7,#E8889A)" },
-  midnight: { name: "午夜", swatch: "linear-gradient(135deg,#3A3D5C,#1F2235)" },
-  forest: { name: "森林", swatch: "linear-gradient(135deg,#7FA679,#3F6B4D)" },
+const THEME_META: Record<AppTheme, { name: string; swatch: string; tag: string; font: string; radius: string }> = {
+  morandi: {
+    name: "莫蘭迪", swatch: "linear-gradient(135deg,#B8C5B0,#D4C5B0)",
+    tag: "柔和｜大圓角", font: "Nunito", radius: "1.25rem",
+  },
+  ocean: {
+    name: "海洋", swatch: "linear-gradient(135deg,#7CB4C6,#3D6B89)",
+    tag: "現代｜方正", font: "Space Grotesk", radius: "0.75rem",
+  },
+  sakura: {
+    name: "櫻花", swatch: "linear-gradient(135deg,#F5C2C7,#E8889A)",
+    tag: "手寫｜超圓潤", font: "Caveat 手寫體", radius: "1.5rem",
+  },
+  midnight: {
+    name: "午夜", swatch: "linear-gradient(135deg,#3A3D5C,#1F2235)",
+    tag: "暗黑｜銳利", font: "Space Grotesk", radius: "0.5rem",
+  },
+  forest: {
+    name: "森林", swatch: "linear-gradient(135deg,#7FA679,#3F6B4D)",
+    tag: "復古襯線", font: "DM Serif Display", radius: "1.25rem",
+  },
 };
 
 const MODE_META: Record<AppMode, { name: string; emoji: string; desc: string }> = {
@@ -147,6 +162,7 @@ function ProfilePage() {
             {(Object.keys(THEME_META) as AppTheme[]).map((t) => {
               const owned = ownedThemes.includes(t);
               const active = currentTheme === t;
+              const meta = THEME_META[t];
               return (
                 <button
                   key={t}
@@ -156,12 +172,14 @@ function ProfilePage() {
                   className={`p-2 rounded-2xl border text-xs font-medium relative overflow-hidden ${
                     active ? "border-primary ring-2 ring-primary" : "border-border"
                   } ${!owned ? "opacity-50" : ""}`}
+                  style={owned ? { borderRadius: meta.radius } : undefined}
                 >
                   <div
                     className="h-10 rounded-xl mb-1.5"
-                    style={{ background: THEME_META[t].swatch }}
+                    style={{ background: meta.swatch, borderRadius: `calc(${meta.radius} - 0.5rem)` }}
                   />
-                  {THEME_META[t].name}
+                  <p className="font-bold" style={{ fontFamily: meta.font }}>{meta.name}</p>
+                  <p className="text-[9px] text-muted-foreground">{meta.tag}</p>
                   {!owned && (
                     <Lock className="w-3 h-3 absolute top-2 right-2 text-muted-foreground" />
                   )}

@@ -13,6 +13,7 @@ import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
+import { Route as PlanRouteImport } from './routes/plan'
 import { Route as NotificationsRouteImport } from './routes/notifications'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as LoginRouteImport } from './routes/login'
@@ -51,6 +52,11 @@ const ProfileRoute = ProfileRouteImport.update({
 const PointsRoute = PointsRouteImport.update({
   id: '/points',
   path: '/points',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PlanRoute = PlanRouteImport.update({
+  id: '/plan',
+  path: '/plan',
   getParentRoute: () => rootRouteImport,
 } as any)
 const NotificationsRoute = NotificationsRouteImport.update({
@@ -160,6 +166,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
+  '/plan': typeof PlanRoute
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -185,6 +192,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
+  '/plan': typeof PlanRoute
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -211,6 +219,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/me': typeof MeRoute
   '/notifications': typeof NotificationsRoute
+  '/plan': typeof PlanRoute
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
@@ -238,6 +247,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/notifications'
+    | '/plan'
     | '/points'
     | '/profile'
     | '/redeem'
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/notifications'
+    | '/plan'
     | '/points'
     | '/profile'
     | '/redeem'
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/me'
     | '/notifications'
+    | '/plan'
     | '/points'
     | '/profile'
     | '/redeem'
@@ -314,6 +326,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MeRoute: typeof MeRoute
   NotificationsRoute: typeof NotificationsRoute
+  PlanRoute: typeof PlanRoute
   PointsRoute: typeof PointsRoute
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
@@ -357,6 +370,13 @@ declare module '@tanstack/react-router' {
       path: '/points'
       fullPath: '/points'
       preLoaderRoute: typeof PointsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/plan': {
+      id: '/plan'
+      path: '/plan'
+      fullPath: '/plan'
+      preLoaderRoute: typeof PlanRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/notifications': {
@@ -506,6 +526,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MeRoute: MeRoute,
   NotificationsRoute: NotificationsRoute,
+  PlanRoute: PlanRoute,
   PointsRoute: PointsRoute,
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,

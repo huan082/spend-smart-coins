@@ -238,7 +238,7 @@ function HomePage() {
           <div>
             <div className="flex items-center justify-between mb-3 px-1">
               <h2 className="font-display font-bold text-base">進行中的目標</h2>
-              <Link to="/goals" className="text-xs text-primary font-medium">
+              <Link to="/plan" className="text-xs text-primary font-medium">
                 查看全部
               </Link>
             </div>

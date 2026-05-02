@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
-import { Plus, Pencil, Trash2, Search, X, CalendarDays, List, Sparkles, ChevronRight } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, X, CalendarDays, List, Sparkles, ChevronRight, BarChart3 } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -63,6 +63,23 @@ function LedgerPage() {
       }
     >
       <div className="px-4 py-3 space-y-3">
+        {/* 消費分析入口 */}
+        <Link
+          to="/analytics"
+          className="flex items-center gap-3 p-3 rounded-2xl bg-gradient-warm/40 border border-accent/30 shadow-soft"
+        >
+          <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center">
+            <BarChart3 className="w-5 h-5 text-accent-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <p className="font-bold text-sm">消費分析</p>
+            <p className="text-[11px] text-muted-foreground">
+              查看分類比例、店家排行與月度收支
+            </p>
+          </div>
+          <ChevronRight className="w-4 h-4 text-muted-foreground" />
+        </Link>
+
         {/* 自動記帳待確認入口 */}
         {(autoTxnEnabled || pendingAuto > 0) && (
           <Link
@@ -91,7 +108,7 @@ function LedgerPage() {
         <div className="grid grid-cols-2 gap-1 p-1 bg-muted rounded-2xl">
           {([
             { k: "list" as const, l: "列表", icon: List },
-            { k: "calendar" as const, l: "行事曆", icon: CalendarDays },
+            { k: "calendar" as const, l: "日曆", icon: CalendarDays },
           ]).map(({ k, l, icon: Icon }) => (
             <button
               key={k}
@@ -127,6 +144,15 @@ function LedgerPage() {
                   <span className="text-sm font-bold">
                     {format(selectedDate, "yyyy / MM / dd EEE")}
                   </span>
+                  <Link
+                    to="/ledger/new"
+                    search={{ date: format(selectedDate, "yyyy-MM-dd") }}
+                    className="flex items-center gap-1 px-3 py-1 rounded-full bg-primary text-primary-foreground text-xs font-bold shadow-soft"
+                  >
+                    <Plus className="w-3 h-3" /> 新增當天
+                  </Link>
+                </div>
+                <div className="flex justify-end px-1">
                   {(() => {
                     const d = dayTotals.get(format(selectedDate, "yyyy-MM-dd"));
                     if (!d) return <span className="text-xs text-muted-foreground">無紀錄</span>;

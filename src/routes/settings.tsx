@@ -89,7 +89,7 @@ function SettingsPage() {
 
         <Section title="自動記帳 / 連動">
           <Link to="/carriers" className="block">
-            <Item icon={Smartphone} label="連動管理" desc={`已連動 ${carriers.length} 組（手機載具、悠遊卡、信用卡）`} />
+            <Item icon={Smartphone} label="連動管理" desc={`已連動 ${carriers.length} 組手機條碼載具`} />
           </Link>
           <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50 last:border-0">
             <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">

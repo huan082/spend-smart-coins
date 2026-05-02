@@ -17,7 +17,6 @@ function NewGoal() {
   const [deadline, setDeadline] = useState("");
   const [url, setUrl] = useState("");
   const [notify, setNotify] = useState(true);
-  const [priority, setPriority] = useState<"need" | "want">("want");
   const [category, setCategory] = useState("");
 
   const submit = (e: React.FormEvent) => {
@@ -33,7 +32,6 @@ function NewGoal() {
       currentPrice: url ? targetNum : undefined,
       originalPrice: url ? targetNum : undefined,
       notifyOnDrop: notify,
-      priority,
       category: category || undefined,
     });
     navigate({ to: "/goals" });
@@ -78,28 +76,6 @@ function NewGoal() {
             onChange={(e) => setDeadline(e.target.value)}
             className="w-full px-4 py-3 rounded-2xl bg-card border border-border outline-none text-sm"
           />
-        </Field>
-
-        <Field label="優先順序">
-          <div className="flex gap-2">
-            {([
-              { v: "need" as const, l: "必要", emoji: "✅" },
-              { v: "want" as const, l: "想要", emoji: "💖" },
-            ]).map((o) => (
-              <button
-                key={o.v}
-                type="button"
-                onClick={() => setPriority(o.v)}
-                className={`flex-1 py-3 rounded-2xl text-sm font-bold border ${
-                  priority === o.v
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-card border-border text-muted-foreground"
-                }`}
-              >
-                {o.emoji} {o.l}
-              </button>
-            ))}
-          </div>
         </Field>
 
         <Field label="分類（選填）">

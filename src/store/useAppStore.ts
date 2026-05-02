@@ -75,7 +75,7 @@ export interface User {
 
 export interface CarrierLink {
   id: string;
-  type: "mobile_barcode" | "easycard" | "credit_card";
+  type: "mobile_barcode";
   label: string;
   account: string; // 載具號碼 / 卡號末四碼
   enabled: boolean; // 是否啟用自動記帳
@@ -289,6 +289,58 @@ export const useAppStore = create<AppState>()(
           authorName: "美食情報",
           createdAt: new Date(Date.now() - 1000 * 60 * 60 * 48).toISOString(),
           likes: 15,
+        },
+        {
+          id: "post6",
+          title: "Netflix 學生方案 75 折",
+          store: "Netflix",
+          description: "持有效學生證即可申請，每月省下一杯飲料錢。",
+          authorId: "system",
+          authorName: "追劇魂",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 60).toISOString(),
+          likes: 22,
+        },
+        {
+          id: "post7",
+          title: "屈臣氏寵 i 會員第二件 6 折",
+          store: "屈臣氏",
+          description: "指定保養品、面膜第二件 6 折，e 點還可折抵現金。",
+          authorId: "system",
+          authorName: "保養女孩",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 72).toISOString(),
+          likes: 11,
+        },
+        {
+          id: "post8",
+          title: "Klook 9 月旅遊金折扣碼 SEP300",
+          store: "Klook",
+          description: "輸入折扣碼滿 3000 折 300，國內景點門票通用。",
+          url: "https://www.klook.com",
+          authorId: "system",
+          authorName: "旅遊控",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 90).toISOString(),
+          likes: 38,
+        },
+        {
+          id: "post9",
+          title: "Costco 會員日 指定商品折 200",
+          store: "Costco",
+          description: "週末出示會員卡，家電、生鮮指定品項立折 200。",
+          authorId: "system",
+          authorName: "省錢主婦",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 100).toISOString(),
+          likes: 19,
+        },
+        {
+          id: "post10",
+          title: "PChome 24h 滿千免運",
+          store: "PChome",
+          description: "結帳滿千免運，加碼領券再折 50。",
+          url: "https://24h.pchome.com.tw",
+          authorId: "system",
+          authorName: "宅配狂",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 110).toISOString(),
+          likes: 13,
         },
 
         // ===== 好康地圖（實體店家位置） =====
