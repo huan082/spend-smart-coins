@@ -149,6 +149,88 @@
   --sidebar-ring: oklch(0.704 0.04 256.788);
 }
 
+/* ==========================================================
+   主題：每個主題不只有換顏色，連圓角、字體、陰影、漸層
+   都會跟著換。data-theme 由 AppLayout 套到 <html>。
+   ========================================================== */
+@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Quicksand:wght@500;700&family=Caveat:wght@600;700&family=Space+Grotesk:wght@500;700&display=swap");
+
+html[data-theme="ocean"] {
+  --radius: 0.75rem;
+  --background: oklch(0.97 0.02 230);
+  --card: oklch(0.99 0.01 230);
+  --primary: oklch(0.62 0.12 230);
+  --primary-foreground: oklch(0.99 0.005 230);
+  --primary-soft: oklch(0.9 0.05 230);
+  --secondary: oklch(0.86 0.05 220);
+  --tertiary: oklch(0.82 0.06 200);
+  --accent: oklch(0.78 0.1 195);
+  --muted: oklch(0.93 0.02 230);
+  --border: oklch(0.88 0.025 230);
+  --gradient-primary: linear-gradient(135deg, oklch(0.7 0.12 230), oklch(0.55 0.13 245));
+  --gradient-bg: linear-gradient(180deg, oklch(0.97 0.02 230), oklch(0.93 0.04 220));
+  --font-display: "Space Grotesk", "Noto Sans TC", sans-serif;
+}
+
+html[data-theme="sakura"] {
+  --radius: 1.5rem;
+  --background: oklch(0.98 0.015 15);
+  --card: oklch(0.99 0.008 15);
+  --primary: oklch(0.78 0.12 10);
+  --primary-foreground: oklch(0.99 0.005 15);
+  --primary-soft: oklch(0.94 0.04 10);
+  --secondary: oklch(0.9 0.05 25);
+  --tertiary: oklch(0.86 0.05 350);
+  --accent: oklch(0.85 0.08 350);
+  --muted: oklch(0.95 0.015 15);
+  --border: oklch(0.9 0.025 15);
+  --gradient-primary: linear-gradient(135deg, oklch(0.85 0.1 5), oklch(0.78 0.12 350));
+  --gradient-bg: linear-gradient(180deg, oklch(0.98 0.015 15), oklch(0.94 0.04 350));
+  --font-display: "Caveat", "Noto Sans TC", cursive;
+}
+
+html[data-theme="midnight"] {
+  --radius: 0.5rem;
+  --background: oklch(0.18 0.02 270);
+  --foreground: oklch(0.95 0.01 270);
+  --card: oklch(0.24 0.025 270);
+  --card-foreground: oklch(0.95 0.01 270);
+  --popover: oklch(0.24 0.025 270);
+  --popover-foreground: oklch(0.95 0.01 270);
+  --primary: oklch(0.7 0.15 280);
+  --primary-foreground: oklch(0.15 0.02 270);
+  --primary-soft: oklch(0.32 0.05 280);
+  --secondary: oklch(0.3 0.04 280);
+  --secondary-foreground: oklch(0.95 0.01 270);
+  --tertiary: oklch(0.32 0.05 220);
+  --accent: oklch(0.4 0.1 295);
+  --accent-foreground: oklch(0.95 0.01 270);
+  --muted: oklch(0.28 0.02 270);
+  --muted-foreground: oklch(0.7 0.02 270);
+  --border: oklch(0.32 0.02 270);
+  --input: oklch(0.3 0.02 270);
+  --gradient-primary: linear-gradient(135deg, oklch(0.5 0.18 280), oklch(0.4 0.15 250));
+  --gradient-bg: linear-gradient(180deg, oklch(0.18 0.02 270), oklch(0.14 0.03 260));
+  --font-display: "Space Grotesk", "Noto Sans TC", sans-serif;
+}
+
+html[data-theme="forest"] {
+  --radius: 1.25rem;
+  --background: oklch(0.96 0.02 140);
+  --card: oklch(0.99 0.01 140);
+  --primary: oklch(0.55 0.1 150);
+  --primary-foreground: oklch(0.99 0.005 140);
+  --primary-soft: oklch(0.88 0.05 145);
+  --secondary: oklch(0.85 0.05 100);
+  --tertiary: oklch(0.82 0.06 130);
+  --accent: oklch(0.78 0.1 95);
+  --muted: oklch(0.93 0.02 130);
+  --border: oklch(0.88 0.025 140);
+  --gradient-primary: linear-gradient(135deg, oklch(0.6 0.12 150), oklch(0.45 0.1 165));
+  --gradient-bg: linear-gradient(180deg, oklch(0.96 0.02 140), oklch(0.92 0.04 120));
+  --font-display: "DM Serif Display", "Noto Sans TC", serif;
+}
+
 .dark {
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);

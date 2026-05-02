@@ -1,4 +1,4 @@
-import { ReactNode } from "react";
+import { ReactNode, useEffect } from "react";
 import { PhoneFrame } from "./PhoneFrame";
 import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
@@ -25,6 +25,10 @@ export function AppLayout({
   requireAuth = true,
 }: Props) {
   const user = useAppStore((s) => s.user);
+  const currentTheme = useAppStore((s) => s.currentTheme);
+  useEffect(() => {
+    document.documentElement.dataset.theme = currentTheme;
+  }, [currentTheme]);
   if (requireAuth && !user) return <Navigate to="/login" />;
 
   return (

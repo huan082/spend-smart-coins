@@ -11,12 +11,12 @@ export const Route = createFileRoute("/redeem")({
 
 type Tab = "theme" | "mode" | "avatar";
 
-const THEMES: { id: AppTheme; name: string; cost: number; preview: string; desc: string }[] = [
-  { id: "morandi", name: "莫蘭迪", cost: 0, preview: "linear-gradient(135deg,#C8D5C0,#D9C5C0)", desc: "預設柔和色調" },
-  { id: "ocean", name: "海洋藍調", cost: 300, preview: "linear-gradient(135deg,#A8C5D6,#7BA3C0)", desc: "清涼海風感" },
-  { id: "sakura", name: "櫻花季", cost: 350, preview: "linear-gradient(135deg,#F5C6CB,#E8A4B5)", desc: "春日粉嫩" },
-  { id: "midnight", name: "深夜模式", cost: 500, preview: "linear-gradient(135deg,#2C3E50,#34495E)", desc: "暗黑護眼" },
-  { id: "forest", name: "森林秘境", cost: 400, preview: "linear-gradient(135deg,#7FA67F,#506B50)", desc: "自然療癒" },
+const THEMES: { id: AppTheme; name: string; cost: number; preview: string; desc: string; font: string; radius: string }[] = [
+  { id: "morandi", name: "莫蘭迪", cost: 0, preview: "linear-gradient(135deg,#C8D5C0,#D9C5C0)", desc: "柔和色 ｜ 大圓角 ｜ 圓潤字體", font: "Nunito", radius: "1.25rem" },
+  { id: "ocean", name: "海洋藍調", cost: 300, preview: "linear-gradient(135deg,#A8C5D6,#7BA3C0)", desc: "清涼海風 ｜ 現代方正字體", font: "Space Grotesk", radius: "0.75rem" },
+  { id: "sakura", name: "櫻花季", cost: 350, preview: "linear-gradient(135deg,#F5C6CB,#E8A4B5)", desc: "粉嫩 ｜ 手寫體 ｜ 超圓邊框", font: "Caveat", radius: "1.5rem" },
+  { id: "midnight", name: "深夜模式", cost: 500, preview: "linear-gradient(135deg,#2C3E50,#34495E)", desc: "深色護眼 ｜ 銳利方角", font: "Space Grotesk", radius: "0.5rem" },
+  { id: "forest", name: "森林秘境", cost: 400, preview: "linear-gradient(135deg,#7FA67F,#506B50)", desc: "復古綠 ｜ 襯線英文字體", font: "DM Serif Display", radius: "1.25rem" },
 ];
 
 const MODES: { id: AppMode; name: string; cost: number; emoji: string; desc: string; sample: string }[] = [
@@ -131,10 +131,15 @@ function RedeemPage() {
                   onClick={() => buyTheme(t)}
                   className="w-full flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60 shadow-soft text-left active:scale-98"
                 >
-                  <div className="w-16 h-16 rounded-2xl shadow-soft flex-shrink-0" style={{ background: t.preview }} />
+                  <div
+                    className="w-16 h-16 shadow-soft flex-shrink-0 flex items-center justify-center text-card text-xl font-bold"
+                    style={{ background: t.preview, borderRadius: t.radius, fontFamily: t.font }}
+                  >
+                    Aa
+                  </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="font-bold">{t.name}</p>
+                      <p className="font-bold" style={{ fontFamily: t.font }}>{t.name}</p>
                       {active && <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-primary text-primary-foreground font-bold">使用中</span>}
                     </div>
                     <p className="text-xs text-muted-foreground">{t.desc}</p>

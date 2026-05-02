@@ -32,7 +32,7 @@ function AutoLedgerPage() {
           <div>
             <p className="font-bold mb-1">尚未啟用自動記帳</p>
             <p className="text-xs text-muted-foreground">
-              前往「連動管理」加入手機載具或電子支付
+              前往「連動管理」加入手機條碼載具
             </p>
           </div>
           <div className="flex gap-2 justify-center">
