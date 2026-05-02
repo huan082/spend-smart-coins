@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import { useState, useRef } from "react";
@@ -7,9 +7,13 @@ import { Plus, X, Image as ImageIcon, Trash2 } from "lucide-react";
 export const Route = createFileRoute("/ledger/new")({
   component: NewTxn,
   head: () => ({ meta: [{ title: "新增記帳" }] }),
+  validateSearch: (s: Record<string, unknown>) => ({
+    date: typeof s.date === "string" ? s.date : undefined,
+  }),
 });
 
 function NewTxn() {
+  const search = Route.useSearch();
   const {
     addTransaction,
     expenseCategories,
@@ -26,7 +30,7 @@ function NewTxn() {
   const [store, setStore] = useState("");
   const [note, setNote] = useState("");
   const [photo, setPhoto] = useState<string | undefined>();
-  const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
+  const [date, setDate] = useState(search.date || new Date().toISOString().slice(0, 10));
   const [showAddCat, setShowAddCat] = useState(false);
   const [newCat, setNewCat] = useState("");
   const [newCatEmoji, setNewCatEmoji] = useState("🌿");
