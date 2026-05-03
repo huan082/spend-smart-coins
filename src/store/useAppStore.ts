@@ -847,6 +847,15 @@ export const useAppStore = create<AppState>()(
           favoriteDealIds: [],
           favoriteStores: [],
         }),
+
+      refreshScrapedDeals: async () => {
+        // demo：模擬「爬蟲」延遲 + 重新整理時間戳，每次微調筆數
+        await new Promise((r) => setTimeout(r, 700));
+        const shuffled = [...SEED_SCRAPED_DEALS]
+          .sort(() => Math.random() - 0.5)
+          .map((d) => ({ ...d, fetchedAt: new Date().toISOString() }));
+        set({ scrapedDeals: shuffled, scrapedFetchedAt: new Date().toISOString() });
+      },
     }),
     { name: "money-app-store" }
   )
