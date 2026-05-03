@@ -92,6 +92,20 @@ export interface AutoTxnLog {
   imported: boolean; // 是否已匯入記帳
 }
 
+// 從各家店家官網「爬蟲」取得的優惠（demo：寫死資料 + 可手動重新整理）
+export interface ScrapedDeal {
+  id: string;
+  store: string;
+  title: string;
+  description: string;
+  url?: string;
+  address: string;
+  lat: number;
+  lng: number;
+  source: string; // 例：全聯官網
+  fetchedAt: string;
+}
+
 export type AppTheme = "morandi" | "ocean" | "sakura" | "midnight" | "forest";
 export type AppMode = "normal" | "savage" | "gentle" | "cheer" | "zen";
 
@@ -130,6 +144,10 @@ interface AppState {
   autoTxnEnabled: boolean;
   autoTxnLogs: AutoTxnLog[];
 
+  // 好康地圖：爬蟲取得的店家優惠
+  scrapedDeals: ScrapedDeal[];
+  scrapedFetchedAt: string | null;
+
   // 收藏優惠 & 主題
   favoriteDealIds: string[];
   favoriteStores: string[];
@@ -152,6 +170,9 @@ interface AppState {
   importAutoTxn: (id: string) => void;
   ignoreAutoTxn: (id: string) => void;
   simulateAutoTxn: () => void;
+
+  // 爬蟲
+  refreshScrapedDeals: () => Promise<void>;
 
   // 收藏 & 主題
   toggleFavoriteDeal: (id: string) => void;
@@ -228,6 +249,130 @@ const DEFAULT_INCOME_CATS = [
   { name: "其他", emoji: "✨" },
 ];
 const DEFAULT_STORES = ["全聯", "7-11", "全家", "星巴克", "麥當勞", "蝦皮", "momo"];
+
+// 從各家店家官網「爬蟲」取得的優惠（demo seed）
+const SEED_SCRAPED_DEALS: ScrapedDeal[] = [
+  {
+    id: "sc_pxmart_1",
+    store: "全聯",
+    title: "週末蔬果 85 折",
+    description: "週六日全店蔬果 85 折，PX Pay 結帳再回饋 1%。",
+    url: "https://www.pxmart.com.tw/",
+    address: "台北市中正區忠孝西路一段 49 號",
+    lat: 25.0478,
+    lng: 121.5319,
+    source: "全聯實業 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_pxmart_2",
+    store: "全聯",
+    title: "御茶園 任 2 件 8 折",
+    description: "指定茶飲品任 2 件 8 折，限週間。",
+    url: "https://www.pxmart.com.tw/",
+    address: "台北市大安區復興南路一段 200 號",
+    lat: 25.0410,
+    lng: 121.5440,
+    source: "全聯實業 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_711_1",
+    store: "7-11",
+    title: "City Cafe 第二杯半價",
+    description: "整周大杯美式、拿鐵第二杯半價。",
+    url: "https://www.7-11.com.tw/",
+    address: "台北市中正區館前路 6 號",
+    lat: 25.0455,
+    lng: 121.5170,
+    source: "7-ELEVEN 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_711_2",
+    store: "7-11",
+    title: "鮮食 39 元起",
+    description: "指定御飯糰、三明治 39 元起，OPEN POINT 加碼集點。",
+    url: "https://www.7-11.com.tw/",
+    address: "台北市信義區松仁路 100 號",
+    lat: 25.0360,
+    lng: 121.5680,
+    source: "7-ELEVEN 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_familymart_1",
+    store: "全家",
+    title: "鮮食買 2 送 1",
+    description: "指定鮮食、便當買 2 送 1，App 出示載具。",
+    url: "https://www.family.com.tw/",
+    address: "台北市大安區忠孝東路四段 55 號",
+    lat: 25.0421,
+    lng: 121.5360,
+    source: "全家便利商店 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_familymart_2",
+    store: "全家",
+    title: "Let's Café 大杯 49 元",
+    description: "週四限定 大杯拿鐵 49 元。",
+    url: "https://www.family.com.tw/",
+    address: "台北市中山區南京東路二段 80 號",
+    lat: 25.0520,
+    lng: 121.5320,
+    source: "全家便利商店 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_hilife_1",
+    store: "萊爾富",
+    title: "Hi-Café 中杯拿鐵 39 元",
+    description: "Hi 點折抵更划算。",
+    url: "https://www.hilife.com.tw/",
+    address: "台北市中山區南京西路 18 號",
+    lat: 25.0510,
+    lng: 121.5280,
+    source: "萊爾富 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_starbucks_1",
+    store: "星巴克",
+    title: "週三買一送一",
+    description: "週三 14:00-20:00 大杯指定飲品買一送一。",
+    url: "https://www.starbucks.com.tw/",
+    address: "台北市信義區市府路 45 號",
+    lat: 25.0418,
+    lng: 121.5450,
+    source: "星巴克 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_mcd_1",
+    store: "麥當勞",
+    title: "甜心卡優惠",
+    description: "出示甜心卡享指定餐點優惠。",
+    url: "https://www.mcdonalds.com/tw/",
+    address: "台北市信義區松壽路 12 號",
+    lat: 25.0330,
+    lng: 121.5654,
+    source: "麥當勞 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+  {
+    id: "sc_watsons_1",
+    store: "屈臣氏",
+    title: "寵 i 會員第二件 6 折",
+    description: "指定保養品、口罩第二件 6 折，e 點雙倍累積。",
+    url: "https://www.watsons.com.tw/",
+    address: "台北市大安區敦化南路一段 200 號",
+    lat: 25.0392,
+    lng: 121.5500,
+    source: "屈臣氏 官網",
+    fetchedAt: new Date().toISOString(),
+  },
+];
 
 export const useAppStore = create<AppState>()(
   persist(
@@ -342,98 +487,31 @@ export const useAppStore = create<AppState>()(
           createdAt: new Date(Date.now() - 1000 * 60 * 60 * 110).toISOString(),
           likes: 13,
         },
-
-        // ===== 好康地圖（實體店家位置） =====
         {
-          id: "map_pxmart",
-          title: "全聯週末蔬果 85 折",
-          store: "全聯",
-          description: "週六日全店蔬果 85 折，會員 PX Pay 結帳再享回饋。",
+          id: "post_local_1",
+          title: "巷口手搖第二杯半價",
+          store: "可不可熟成紅茶",
+          description: "下午 2-5 點同品項第二杯半價，限店內購買。",
           authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 12,
-          lat: 25.0478,
-          lng: 121.5319,
-          address: "台北市中正區忠孝西路一段 49 號",
+          authorName: "在地吃貨",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 4).toISOString(),
+          likes: 17,
+          address: "台北市大安區忠孝東路三段 251 號",
+          lat: 25.0419,
+          lng: 121.5430,
         },
         {
-          id: "map_711",
-          title: "7-11 City Cafe 第二杯半價",
-          store: "7-11",
-          description: "整周大杯美式、拿鐵第二杯半價，OPEN POINT 會員加碼集點。",
+          id: "post_local_2",
+          title: "晚餐時段牛肉麵 9 折",
+          store: "林東芳牛肉麵",
+          description: "晚上 7 點後到店出示貼文，全桌 9 折。",
           authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 33,
-          lat: 25.0455,
-          lng: 121.5170,
-          address: "台北市中正區館前路 6 號",
-        },
-        {
-          id: "map_familymart",
-          title: "全家鮮食買 2 送 1",
-          store: "全家",
-          description: "指定鮮食、飯糰、便當買 2 送 1，限會員 App 出示載具。",
-          authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 21,
-          lat: 25.0421,
-          lng: 121.5360,
-          address: "台北市大安區忠孝東路四段 55 號",
-        },
-        {
-          id: "map_hilife",
-          title: "萊爾富指定飲料 39 元",
-          store: "萊爾富",
-          description: "Hi-Café 中杯拿鐵 39 元起，搭配 Hi 點折抵更划算。",
-          authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
+          authorName: "美食團長",
+          createdAt: new Date(Date.now() - 1000 * 60 * 60 * 8).toISOString(),
           likes: 9,
-          lat: 25.0510,
-          lng: 121.5280,
-          address: "台北市中山區南京西路 18 號",
-        },
-        {
-          id: "map_starbucks",
-          title: "星巴克買一送一",
-          store: "星巴克",
-          description: "週三 14:00-20:00 大杯指定飲品買一送一。",
-          authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 24,
-          lat: 25.0418,
-          lng: 121.5450,
-          address: "台北市信義區市府路 45 號",
-        },
-        {
-          id: "map_mcd",
-          title: "麥當勞甜心卡",
-          store: "麥當勞",
-          description: "出示甜心卡享指定餐點優惠。",
-          authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 8,
-          lat: 25.0330,
-          lng: 121.5654,
-          address: "台北市信義區松壽路 12 號",
-        },
-        {
-          id: "map_watsons",
-          title: "屈臣氏寵 i 會員雙倍 e 點",
-          store: "屈臣氏",
-          description: "指定保養品、口罩第二件 6 折，會員 e 點雙倍累積。",
-          authorId: "system",
-          authorName: "小編",
-          createdAt: new Date().toISOString(),
-          likes: 14,
-          lat: 25.0392,
-          lng: 121.5500,
-          address: "台北市大安區敦化南路一段 200 號",
+          address: "台北市中山區八德路二段 274 號",
+          lat: 25.0470,
+          lng: 121.5400,
         },
       ],
       points: 0,
@@ -462,6 +540,9 @@ export const useAppStore = create<AppState>()(
       carriers: [],
       autoTxnEnabled: false,
       autoTxnLogs: [],
+
+      scrapedDeals: SEED_SCRAPED_DEALS,
+      scrapedFetchedAt: new Date().toISOString(),
 
       favoriteDealIds: [],
       favoriteStores: [],
@@ -699,6 +780,15 @@ export const useAppStore = create<AppState>()(
           favoriteDealIds: [],
           favoriteStores: [],
         }),
+
+      refreshScrapedDeals: async () => {
+        // demo：模擬「爬蟲」延遲 + 重新整理時間戳，每次微調筆數
+        await new Promise((r) => setTimeout(r, 700));
+        const shuffled = [...SEED_SCRAPED_DEALS]
+          .sort(() => Math.random() - 0.5)
+          .map((d) => ({ ...d, fetchedAt: new Date().toISOString() }));
+        set({ scrapedDeals: shuffled, scrapedFetchedAt: new Date().toISOString() });
+      },
     }),
     { name: "money-app-store" }
   )

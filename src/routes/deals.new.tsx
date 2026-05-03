@@ -41,9 +41,9 @@ function NewDeal() {
       url: url || undefined,
       address: address || undefined,
       photo,
-      // demo 模式：給隨機台北座標
-      lat: 25.04 + Math.random() * 0.03,
-      lng: 121.53 + Math.random() * 0.03,
+      // 有填地址才在地圖上顯示（demo：隨機台北座標）
+      lat: address ? 25.04 + Math.random() * 0.03 : undefined,
+      lng: address ? 121.53 + Math.random() * 0.03 : undefined,
     });
     navigate({ to: "/deals" });
   };
