@@ -4,7 +4,7 @@ import { useAppStore, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
 import {
   Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
-  Bookmark, BookmarkCheck,
+  Bookmark, BookmarkCheck, RefreshCw, Globe,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhTW } from "date-fns/locale";
@@ -22,10 +22,12 @@ function DealsPage() {
     likeDeal, deleteDeal,
     favoriteDealIds, favoriteStores,
     toggleFavoriteDeal, toggleFavoriteStore,
+    scrapedDeals, scrapedFetchedAt, refreshScrapedDeals,
   } = useAppStore();
   const [tab, setTab] = useState<Tab>("posts");
   const [q, setQ] = useState("");
   const [mapQ, setMapQ] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
   const frequentStores = useMemo(() => {
     const { start, end } = getMonthRange();
@@ -45,13 +47,35 @@ function DealsPage() {
     (d) => !q || d.title.includes(q) || d.store.includes(q) || d.description.includes(q)
   );
 
-  const mapDeals = useMemo(
+  // 地圖：使用者貼文中有填地址的
+  const userMapDeals = useMemo(
     () =>
       deals
-        .filter((d) => d.lat && d.lng)
+        .filter((d) => d.lat && d.lng && d.address)
         .filter((d) => !mapQ || d.store.includes(mapQ) || d.address?.includes(mapQ) || d.title.includes(mapQ)),
     [deals, mapQ]
   );
+  // 附近店家優惠：來自爬蟲
+  const scrapedNearby = useMemo(
+    () =>
+      scrapedDeals.filter(
+        (d) => !mapQ || d.store.includes(mapQ) || d.address.includes(mapQ) || d.title.includes(mapQ)
+      ),
+    [scrapedDeals, mapQ]
+  );
+  // 地圖標點：兩者合併
+  const allMapPins = useMemo(
+    () => [
+      ...userMapDeals.map((d) => ({ id: d.id, store: d.store, lat: d.lat!, lng: d.lng!, kind: "post" as const })),
+      ...scrapedNearby.map((d) => ({ id: d.id, store: d.store, lat: d.lat, lng: d.lng, kind: "scraped" as const })),
+    ],
+    [userMapDeals, scrapedNearby]
+  );
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try { await refreshScrapedDeals(); } finally { setRefreshing(false); }
+  };
 
   const allFreqStores = Array.from(
     new Set([...favoriteStores, ...frequentStores.map((s) => s.name)])
@@ -148,39 +172,82 @@ function DealsPage() {
               />
             </div>
 
-            <MapView deals={mapDeals} />
+            <MapView pins={allMapPins} />
 
+            {/* 來自貼文（有地址） */}
             <div>
-              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
-                附近店家優惠（{mapDeals.length}）
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
+                <BookmarkCheck className="w-3.5 h-3.5" /> 貼文中標註位置（{userMapDeals.length}）
               </p>
               <div className="space-y-2">
-                {mapDeals.map((d) => (
-                  <div
-                    key={d.id}
-                    className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft"
-                  >
+                {userMapDeals.map((d) => (
+                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
                     <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center flex-shrink-0">
                       <MapPin className="w-5 h-5 text-primary" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm truncate">{d.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{d.address || "未填地址"}</p>
+                      <p className="text-xs text-muted-foreground truncate">{d.address}</p>
                       <div className="flex gap-1 mt-1">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">
-                          {d.store}
-                        </span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">
-                          約 {(((d.id.charCodeAt(0) % 15) + 1) / 10).toFixed(1)} km
-                        </span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">@{d.authorName}</span>
                       </div>
                     </div>
                   </div>
                 ))}
-                {mapDeals.length === 0 && (
-                  <div className="py-8 text-center text-muted-foreground text-sm">
-                    沒有符合的店家
+                {userMapDeals.length === 0 && (
+                  <div className="py-6 text-center text-muted-foreground text-xs">
+                    還沒有貼文標註位置，分享優惠時填入地址即會出現在這
                   </div>
+                )}
+              </div>
+            </div>
+
+            {/* 來自爬蟲 */}
+            <div>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <p className="text-xs font-bold text-muted-foreground flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5" /> 附近店家優惠（{scrapedNearby.length}）
+                </p>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="text-xs text-primary font-medium flex items-center gap-1 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} />
+                  {refreshing ? "爬取中..." : "重新爬取"}
+                </button>
+              </div>
+              {scrapedFetchedAt && (
+                <p className="text-[10px] text-muted-foreground px-1 mb-2">
+                  資料來源：店家官網爬蟲 · 更新於{" "}
+                  {formatDistanceToNow(new Date(scrapedFetchedAt), { addSuffix: true, locale: zhTW })}
+                </p>
+              )}
+              <div className="space-y-2">
+                {scrapedNearby.map((d) => (
+                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
+                    <div className="w-10 h-10 rounded-xl bg-tertiary/30 flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-5 h-5 text-tertiary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{d.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{d.description}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">📍 {d.address}</p>
+                      <div className="flex gap-1 mt-1 items-center">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{d.source}</span>
+                        {d.url && (
+                          <a href={d.url} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-primary flex items-center gap-0.5">
+                            原文 <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {scrapedNearby.length === 0 && (
+                  <div className="py-6 text-center text-muted-foreground text-xs">沒有符合的店家</div>
                 )}
               </div>
             </div>
@@ -346,8 +413,9 @@ function DealCard({
 }
 
 // 模擬地圖：把優惠店家以位置散點呈現
-function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["deals"] }) {
-  if (deals.length === 0) {
+type Pin = { id: string; store: string; lat: number; lng: number; kind: "post" | "scraped" };
+function MapView({ pins }: { pins: Pin[] }) {
+  if (pins.length === 0) {
     return (
       <div className="h-56 rounded-3xl bg-gradient-cool/30 border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
         <div className="text-center">
@@ -357,8 +425,8 @@ function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["de
       </div>
     );
   }
-  const lats = deals.map((d) => d.lat!);
-  const lngs = deals.map((d) => d.lng!);
+  const lats = pins.map((d) => d.lat);
+  const lngs = pins.map((d) => d.lng);
   const minLat = Math.min(...lats) - 0.005;
   const maxLat = Math.max(...lats) + 0.005;
   const minLng = Math.min(...lngs) - 0.005;
@@ -383,23 +451,25 @@ function MapView({ deals }: { deals: ReturnType<typeof useAppStore.getState>["de
         <p className="text-[9px] font-bold text-tertiary-foreground mt-1 -translate-x-3">我的位置</p>
       </div>
 
-      {deals.map((d) => {
-        const left = span(d.lng!, minLng, maxLng);
-        const top = 100 - span(d.lat!, minLat, maxLat);
+      {pins.map((d) => {
+        const left = span(d.lng, minLng, maxLng);
+        const top = 100 - span(d.lat, minLat, maxLat);
+        const color = d.kind === "post" ? "text-destructive" : "text-primary";
         return (
           <div key={d.id} className="absolute -translate-x-1/2 -translate-y-full" style={{ left: `${left}%`, top: `${top}%` }}>
             <div className="flex flex-col items-center">
               <div className="bg-card text-[10px] font-bold px-2 py-0.5 rounded-full shadow-soft mb-1 whitespace-nowrap max-w-[100px] truncate">
                 {d.store}
               </div>
-              <MapPin className="w-7 h-7 text-destructive drop-shadow" fill="currentColor" />
+              <MapPin className={`w-7 h-7 drop-shadow ${color}`} fill="currentColor" />
             </div>
           </div>
         );
       })}
 
-      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/80 px-2 py-0.5 rounded">
-        示意地圖
+      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/80 px-2 py-0.5 rounded flex items-center gap-2">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />貼文</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />爬蟲</span>
       </div>
     </div>
   );
