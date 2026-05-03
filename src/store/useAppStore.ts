@@ -92,6 +92,20 @@ export interface AutoTxnLog {
   imported: boolean; // 是否已匯入記帳
 }
 
+// 從各家店家官網「爬蟲」取得的優惠（demo：寫死資料 + 可手動重新整理）
+export interface ScrapedDeal {
+  id: string;
+  store: string;
+  title: string;
+  description: string;
+  url?: string;
+  address: string;
+  lat: number;
+  lng: number;
+  source: string; // 例：全聯官網
+  fetchedAt: string;
+}
+
 export type AppTheme = "morandi" | "ocean" | "sakura" | "midnight" | "forest";
 export type AppMode = "normal" | "savage" | "gentle" | "cheer" | "zen";
 
@@ -130,6 +144,10 @@ interface AppState {
   autoTxnEnabled: boolean;
   autoTxnLogs: AutoTxnLog[];
 
+  // 好康地圖：爬蟲取得的店家優惠
+  scrapedDeals: ScrapedDeal[];
+  scrapedFetchedAt: string | null;
+
   // 收藏優惠 & 主題
   favoriteDealIds: string[];
   favoriteStores: string[];
@@ -152,6 +170,9 @@ interface AppState {
   importAutoTxn: (id: string) => void;
   ignoreAutoTxn: (id: string) => void;
   simulateAutoTxn: () => void;
+
+  // 爬蟲
+  refreshScrapedDeals: () => Promise<void>;
 
   // 收藏 & 主題
   toggleFavoriteDeal: (id: string) => void;
@@ -462,6 +483,9 @@ export const useAppStore = create<AppState>()(
       carriers: [],
       autoTxnEnabled: false,
       autoTxnLogs: [],
+
+      scrapedDeals: SEED_SCRAPED_DEALS,
+      scrapedFetchedAt: new Date().toISOString(),
 
       favoriteDealIds: [],
       favoriteStores: [],
