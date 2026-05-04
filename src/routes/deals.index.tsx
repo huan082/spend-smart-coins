@@ -215,12 +215,12 @@ function DealsPage() {
                   className="text-xs text-primary font-medium flex items-center gap-1 disabled:opacity-50"
                 >
                   <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} />
-                  {refreshing ? "爬取中..." : "重新爬取"}
+                  {refreshing ? "更新中..." : "重新整理"}
                 </button>
               </div>
               {scrapedFetchedAt && (
                 <p className="text-[10px] text-muted-foreground px-1 mb-2">
-                  資料來源：店家官網爬蟲 · 更新於{" "}
+                  整合自合作店家公開優惠資訊 · 更新於{" "}
                   {formatDistanceToNow(new Date(scrapedFetchedAt), { addSuffix: true, locale: zhTW })}
                 </p>
               )}
@@ -468,8 +468,8 @@ function MapView({ pins }: { pins: Pin[] }) {
       })}
 
       <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/80 px-2 py-0.5 rounded flex items-center gap-2">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />貼文</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />爬蟲</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />用戶分享</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />合作店家</span>
       </div>
     </div>
   );
