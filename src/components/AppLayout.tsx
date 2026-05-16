@@ -1,4 +1,4 @@
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import { PhoneFrame } from "./PhoneFrame";
 import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
@@ -26,9 +26,20 @@ export function AppLayout({
 }: Props) {
   const user = useAppStore((s) => s.user);
   const currentTheme = useAppStore((s) => s.currentTheme);
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => {
+    setHydrated(true);
+  }, []);
   useEffect(() => {
     document.documentElement.dataset.theme = currentTheme;
   }, [currentTheme]);
+  if (!hydrated) {
+    return (
+      <PhoneFrame>
+        <div className="flex-1" />
+      </PhoneFrame>
+    );
+  }
   if (requireAuth && !user) return <Navigate to="/login" />;
 
   return (
