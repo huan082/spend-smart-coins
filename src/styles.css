@@ -152,7 +152,6 @@
    主題：每個主題不只有換顏色，連圓角、字體、陰影、漸層
    都會跟著換。data-theme 由 AppLayout 套到 <html>。
    ========================================================== */
-@import url("https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Quicksand:wght@500;700&family=Caveat:wght@600;700&family=Space+Grotesk:wght@500;700&display=swap");
 
 html[data-theme="ocean"] {
   --radius: 0.75rem;
