@@ -2,8 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import {
-  Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2, Clock, Receipt,
-  TrendingDown, Sparkles, AlertTriangle, Smartphone, Zap, User as UserIcon, Fingerprint,
+  Shield, Cloud, Download, Lock, ChevronRight, LogOut, Trash2,
+  Sparkles, Smartphone, Zap, User as UserIcon, Fingerprint,
 } from "lucide-react";
 
 export const Route = createFileRoute("/settings")({
@@ -13,13 +13,6 @@ export const Route = createFileRoute("/settings")({
 
 function SettingsPage() {
   const {
-    budgetAlertEnabled, toggleBudgetAlert,
-    ledgerReminderEnabled, toggleLedgerReminder,
-    ledgerReminderTime, setLedgerReminderTime,
-    goalDropAlertEnabled, toggleGoalDropAlert,
-    dealRecommendEnabled, toggleDealRecommend,
-    abnormalSpendAlertEnabled, toggleAbnormalSpendAlert,
-    billReminderEnabled, toggleBillReminder,
     logout, transactions, goals, clearAllData,
     autoTxnEnabled, toggleAutoTxn, carriers,
     biometricEnabled, toggleBiometric,
@@ -40,53 +33,6 @@ function SettingsPage() {
   return (
     <AppLayout title="設定" back="/me">
       <div className="px-5 py-4 space-y-4">
-        <Section title="通知與提醒">
-          <Toggle icon={AlertTriangle} label="預算超支提醒" checked={budgetAlertEnabled} onChange={toggleBudgetAlert} />
-
-          {/* 定時記帳提醒（含時間） */}
-          <div className="px-4 py-3 border-b border-border/50">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-                <Clock className="w-4 h-4" />
-              </div>
-              <span className="flex-1 text-sm font-medium">定時記帳提醒</span>
-              <SwitchBtn checked={ledgerReminderEnabled} onChange={toggleLedgerReminder} />
-            </div>
-            {ledgerReminderEnabled && (
-              <div className="mt-3 ml-12 flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">提醒時間</span>
-                <input
-                  type="time"
-                  value={ledgerReminderTime}
-                  onChange={(e) => setLedgerReminderTime(e.target.value)}
-                  className="px-3 py-1.5 rounded-xl bg-muted border border-border outline-none text-sm"
-                />
-              </div>
-            )}
-          </div>
-
-          <Toggle icon={TrendingDown} label="目標商品降價提醒" checked={goalDropAlertEnabled} onChange={toggleGoalDropAlert} />
-          <Toggle icon={Sparkles} label="個人化優惠推播" checked={dealRecommendEnabled} onChange={toggleDealRecommend} />
-          <Toggle icon={AlertTriangle} label="異常消費偵測" checked={abnormalSpendAlertEnabled} onChange={toggleAbnormalSpendAlert} />
-
-          {/* 固定帳單提醒（連到管理頁） */}
-          <div className="px-4 py-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center">
-                <Receipt className="w-4 h-4" />
-              </div>
-              <span className="flex-1 text-sm font-medium">固定帳單提醒</span>
-              <SwitchBtn checked={billReminderEnabled} onChange={toggleBillReminder} />
-            </div>
-            <button
-              onClick={() => navigate({ to: "/bills" })}
-              className="mt-3 ml-12 text-xs text-primary font-medium flex items-center gap-1"
-            >
-              管理我的固定帳單 <ChevronRight className="w-3 h-3" />
-            </button>
-          </div>
-        </Section>
-
         <Section title="自動記帳 / 連動">
           <Link to="/carriers" className="block">
             <Item icon={Smartphone} label="連動管理" desc={`已連動 ${carriers.length} 組手機條碼載具`} />

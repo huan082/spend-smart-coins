@@ -121,7 +121,7 @@ function MePage() {
           <MenuItem icon={Edit3} label="個人資料管理" to="/profile" />
           <MenuItem icon={Coins} label="積分總計與紀錄" to="/points" />
           <MenuItem icon={Gift} label="積分兌換（主題/模式/頭像）" to="/redeem" />
-          <MenuItem icon={Bell} label="通知" to="/notifications" />
+          <MenuItem icon={Bell} label="通知與提醒" to="/notifications" />
           <MenuItem icon={Settings} label="設定" to="/settings" />
         </div>
 
