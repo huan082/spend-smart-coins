@@ -220,7 +220,7 @@ function DealsPage() {
               </div>
               {scrapedFetchedAt && (
                 <p className="text-[10px] text-muted-foreground px-1 mb-2">
-                  整合自合作店家公開優惠資訊 · 更新於{" "}
+                  整合自優惠店家公開優惠資訊 · 更新於{" "}
                   {formatDistanceToNow(new Date(scrapedFetchedAt), { addSuffix: true, locale: zhTW })}
                 </p>
               )}
