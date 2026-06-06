@@ -159,7 +159,8 @@ function PlanPage() {
             )}
 
             {goals.slice(0, 5).map((g) => {
-              const p = Math.min(100, (g.saved / g.targetAmount) * 100);
+              const t = g.currentPrice && g.currentPrice > 0 ? g.currentPrice : g.targetAmount;
+              const p = Math.min(100, (g.saved / t) * 100);
               return (
                 <div
                   key={g.id}
@@ -177,7 +178,7 @@ function PlanPage() {
                   </div>
                   <div className="flex justify-between text-xs mb-1.5">
                     <span className="text-muted-foreground">
-                      ${g.saved.toLocaleString()} / ${g.targetAmount.toLocaleString()}
+                      ${g.saved.toLocaleString()} / ${t.toLocaleString()}
                     </span>
                     <span className="font-bold text-primary">{Math.round(p)}%</span>
                   </div>
