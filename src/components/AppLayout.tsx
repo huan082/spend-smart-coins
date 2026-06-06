@@ -15,6 +15,10 @@ interface Props {
   requireAuth?: boolean;
 }
 
+// Module-level hydration flag — only true once after the first client mount,
+// so subsequent route changes don't re-trigger a blank "hydrating" frame.
+let didHydrate = false;
+
 export function AppLayout({
   title,
   children,
@@ -26,8 +30,9 @@ export function AppLayout({
 }: Props) {
   const user = useAppStore((s) => s.user);
   const currentTheme = useAppStore((s) => s.currentTheme);
-  const [hydrated, setHydrated] = useState(false);
+  const [hydrated, setHydrated] = useState(didHydrate);
   useEffect(() => {
+    didHydrate = true;
     setHydrated(true);
   }, []);
   useEffect(() => {
