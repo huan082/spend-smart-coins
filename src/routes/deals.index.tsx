@@ -417,7 +417,7 @@ type Pin = { id: string; store: string; lat: number; lng: number; kind: "post" |
 function MapView({ pins }: { pins: Pin[] }) {
   if (pins.length === 0) {
     return (
-      <div className="h-56 rounded-3xl bg-gradient-cool/30 border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
+      <div className="h-56 rounded-3xl bg-[linear-gradient(135deg,#E8F0E4_0%,#DDEAF0_100%)] border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
         <div className="text-center">
           <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
           目前沒有可顯示的店家位置
@@ -435,20 +435,68 @@ function MapView({ pins }: { pins: Pin[] }) {
     max === min ? 50 : ((n - min) / (max - min)) * 100;
 
   return (
-    <div className="relative h-64 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[linear-gradient(135deg,#E8EDE4_0%,#DDE5E8_100%)]">
-      <svg className="absolute inset-0 w-full h-full opacity-30">
-        {Array.from({ length: 8 }).map((_, i) => (
-          <line key={`h${i}`} x1="0" y1={`${i * 12.5}%`} x2="100%" y2={`${i * 12.5}%`} stroke="#9DB4C0" strokeWidth="0.5" />
-        ))}
-        {Array.from({ length: 8 }).map((_, i) => (
-          <line key={`v${i}`} x1={`${i * 12.5}%`} y1="0" x2={`${i * 12.5}%`} y2="100%" stroke="#9DB4C0" strokeWidth="0.5" />
-        ))}
+    <div className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4]">
+      {/* 仿地圖底圖：水域 / 綠地 / 道路 */}
+      <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
+        {/* 綠地公園色塊 */}
+        <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
+        <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
+        <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
+        {/* 河流 / 水域 */}
+        <path d="M-20 200 Q 80 170 160 210 T 320 220 T 420 200 L 420 260 Q 320 290 200 260 T 0 270 Z" fill="#B7D3DE" opacity="0.9" />
+        {/* 街區地塊 */}
+        <g fill="#F2F1EA" opacity="0.7">
+          <rect x="40" y="20" width="50" height="40" rx="4" />
+          <rect x="160" y="40" width="60" height="50" rx="4" />
+          <rect x="240" y="20" width="40" height="50" rx="4" />
+          <rect x="40" y="120" width="70" height="50" rx="4" />
+          <rect x="160" y="120" width="50" height="50" rx="4" />
+          <rect x="240" y="120" width="60" height="40" rx="4" />
+          <rect x="320" y="140" width="60" height="50" rx="4" />
+        </g>
+        {/* 主幹道（粗白線描邊） */}
+        <g stroke="#FFFFFF" strokeWidth="6" fill="none" strokeLinecap="round">
+          <line x1="0" y1="100" x2="400" y2="115" />
+          <line x1="0" y1="180" x2="400" y2="185" />
+          <line x1="130" y1="0" x2="145" y2="300" />
+          <line x1="300" y1="0" x2="315" y2="300" />
+        </g>
+        {/* 道路黃色中線 */}
+        <g stroke="#E8C760" strokeWidth="1.2" strokeDasharray="6 4" fill="none">
+          <line x1="0" y1="100" x2="400" y2="115" />
+          <line x1="0" y1="180" x2="400" y2="185" />
+          <line x1="130" y1="0" x2="145" y2="300" />
+          <line x1="300" y1="0" x2="315" y2="300" />
+        </g>
+        {/* 次要道路 */}
+        <g stroke="#FFFFFF" strokeWidth="3" fill="none">
+          <line x1="0" y1="50" x2="400" y2="55" />
+          <line x1="0" y1="240" x2="400" y2="245" />
+          <line x1="60" y1="0" x2="65" y2="300" />
+          <line x1="220" y1="0" x2="230" y2="300" />
+        </g>
       </svg>
 
+      {/* 區域標籤 */}
+      <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">中山區</div>
+      <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">大安區</div>
+      <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">大安森林公園</div>
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#3F6E82] px-2 py-0.5">基隆河</div>
+
       {/* 中心標示「我的位置」 */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-        <div className="w-3 h-3 rounded-full bg-tertiary border-2 border-card shadow-soft animate-pulse" />
-        <p className="text-[9px] font-bold text-tertiary-foreground mt-1 -translate-x-3">我的位置</p>
+      <div className="absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2 z-10">
+        <div className="relative flex items-center justify-center">
+          <div className="absolute w-8 h-8 rounded-full bg-tertiary/40 animate-ping" />
+          <div className="relative w-3.5 h-3.5 rounded-full bg-tertiary border-2 border-card shadow-soft" />
+        </div>
+        <p className="text-[9px] font-bold text-tertiary-foreground mt-1 text-center whitespace-nowrap">我的位置</p>
+      </div>
+
+      {/* 縮放控制（裝飾） */}
+      <div className="absolute top-3 right-1/2 translate-x-1/2 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground text-sm font-bold">
+        <button className="w-7 h-7 hover:bg-muted leading-none">＋</button>
+        <div className="h-px bg-border" />
+        <button className="w-7 h-7 hover:bg-muted leading-none">－</button>
       </div>
 
       {pins.map((d) => {
@@ -456,20 +504,20 @@ function MapView({ pins }: { pins: Pin[] }) {
         const top = 100 - span(d.lat, minLat, maxLat);
         const color = d.kind === "post" ? "text-destructive" : "text-primary";
         return (
-          <div key={d.id} className="absolute -translate-x-1/2 -translate-y-full" style={{ left: `${left}%`, top: `${top}%` }}>
+          <div key={d.id} className="absolute -translate-x-1/2 -translate-y-full z-20" style={{ left: `${left}%`, top: `${top}%` }}>
             <div className="flex flex-col items-center">
               <div className="bg-card text-[10px] font-bold px-2 py-0.5 rounded-full shadow-soft mb-1 whitespace-nowrap max-w-[100px] truncate">
                 {d.store}
               </div>
-              <MapPin className={`w-7 h-7 drop-shadow ${color}`} fill="currentColor" />
+              <MapPin className={`w-7 h-7 drop-shadow-md ${color}`} fill="currentColor" />
             </div>
           </div>
         );
       })}
 
-      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/80 px-2 py-0.5 rounded flex items-center gap-2">
+      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />用戶分享</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />合作店家</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />優惠店家</span>
       </div>
     </div>
   );
