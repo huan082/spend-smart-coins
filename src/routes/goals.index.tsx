@@ -57,7 +57,8 @@ function GoalsPage() {
         )}
 
         {list.map((g) => {
-          const pct = Math.min(100, (g.saved / g.targetAmount) * 100);
+          const effectiveTarget = g.currentPrice && g.currentPrice > 0 ? g.currentPrice : g.targetAmount;
+          const pct = Math.min(100, (g.saved / effectiveTarget) * 100);
           const dropped =
             g.originalPrice && g.currentPrice && g.currentPrice < g.originalPrice;
           return (
@@ -100,7 +101,7 @@ function GoalsPage() {
 
               <div className="flex justify-between text-xs mb-1.5">
                 <span className="text-muted-foreground">
-                  ${g.saved.toLocaleString()} / ${g.targetAmount.toLocaleString()}
+                  ${g.saved.toLocaleString()} / ${effectiveTarget.toLocaleString()}
                 </span>
                 <span className="font-bold text-primary">{Math.round(pct)}%</span>
               </div>
