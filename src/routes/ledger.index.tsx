@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
-import { Plus, Pencil, Trash2, Search, X, CalendarDays, List, Sparkles, ChevronRight, BarChart3 } from "lucide-react";
+import { Plus, Pencil, Trash2, Search, X, CalendarDays, List, Sparkles, ChevronRight, BarChart3, ArrowDownAZ, ArrowUpAZ } from "lucide-react";
 import { format, isSameDay } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { cn } from "@/lib/utils";
@@ -13,19 +13,43 @@ export const Route = createFileRoute("/ledger/")({
 });
 
 function LedgerPage() {
-  const { transactions, deleteTransaction, autoTxnLogs, autoTxnEnabled } = useAppStore();
+  const { transactions, deleteTransaction, autoTxnLogs, autoTxnEnabled, expenseCategories, incomeCategories } = useAppStore();
   const [q, setQ] = useState("");
   const [filter, setFilter] = useState<"all" | "expense" | "income">("all");
+  const [catFilter, setCatFilter] = useState<string>("all");
+  const [sortOrder, setSortOrder] = useState<"desc" | "asc">("desc");
   const [view, setView] = useState<"list" | "calendar">("list");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   const pendingAuto = autoTxnLogs.filter((l) => !l.imported).length;
 
-  const list = transactions.filter((t) => {
-    if (filter !== "all" && t.type !== filter) return false;
-    if (q && !t.category.includes(q) && !t.note.includes(q)) return false;
-    return true;
-  });
+  // 分類 emoji 對照表
+  const categoryEmoji = useMemo(() => {
+    const map: Record<string, string> = {};
+    expenseCategories.forEach((c) => (map[c.name] = c.emoji));
+    incomeCategories.forEach((c) => (map[c.name] = c.emoji));
+    return map;
+  }, [expenseCategories, incomeCategories]);
+
+  const availableCats = useMemo(() => {
+    if (filter === "expense") return expenseCategories.map((c) => c.name);
+    if (filter === "income") return incomeCategories.map((c) => c.name);
+    return [...new Set([...expenseCategories, ...incomeCategories].map((c) => c.name))];
+  }, [filter, expenseCategories, incomeCategories]);
+
+  const list = transactions
+    .filter((t) => {
+      if (filter !== "all" && t.type !== filter) return false;
+      if (catFilter !== "all" && t.category !== catFilter) return false;
+      if (q && !t.category.includes(q) && !t.note.includes(q)) return false;
+      return true;
+    })
+    .slice()
+    .sort((a, b) =>
+      sortOrder === "desc"
+        ? new Date(b.date).getTime() - new Date(a.date).getTime()
+        : new Date(a.date).getTime() - new Date(b.date).getTime()
+    );
 
   const grouped = list.reduce<Record<string, typeof list>>((acc, t) => {
     const k = format(new Date(t.date), "yyyy-MM-dd");
@@ -170,7 +194,7 @@ function LedgerPage() {
                   </div>
                 ) : (
                   dayItems.map((t) => (
-                    <TxnRow key={t.id} t={t} onDelete={() => confirm("確定刪除？") && deleteTransaction(t.id)} />
+                    <TxnRow key={t.id} t={t} emoji={categoryEmoji[t.category]} onDelete={() => confirm("確定刪除？") && deleteTransaction(t.id)} />
                   ))
                 )}
               </div>
@@ -199,7 +223,7 @@ function LedgerPage() {
           {(["all", "expense", "income"] as const).map((k) => (
             <button
               key={k}
-              onClick={() => setFilter(k)}
+              onClick={() => { setFilter(k); setCatFilter("all"); }}
               className={`px-4 py-1.5 rounded-full text-xs font-medium transition-colors ${
                 filter === k
                   ? "bg-primary text-primary-foreground"
@@ -209,6 +233,29 @@ function LedgerPage() {
               {k === "all" ? "全部" : k === "expense" ? "支出" : "收入"}
             </button>
           ))}
+        </div>
+
+        {/* 分類篩選 + 排序 */}
+        <div className="flex items-center gap-2">
+          <select
+            value={catFilter}
+            onChange={(e) => setCatFilter(e.target.value)}
+            className="flex-1 px-3 py-2 rounded-2xl bg-card border border-border outline-none text-xs shadow-soft"
+          >
+            <option value="all">全部分類</option>
+            {availableCats.map((c) => (
+              <option key={c} value={c}>{categoryEmoji[c] || ""} {c}</option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() => setSortOrder((o) => (o === "desc" ? "asc" : "desc"))}
+            className="flex items-center gap-1 px-3 py-2 rounded-2xl bg-card border border-border text-xs shadow-soft"
+            aria-label="切換日期排序"
+          >
+            {sortOrder === "desc" ? <ArrowDownAZ className="w-3.5 h-3.5" /> : <ArrowUpAZ className="w-3.5 h-3.5" />}
+            {sortOrder === "desc" ? "新到舊" : "舊到新"}
+          </button>
         </div>
 
         {Object.entries(grouped).map(([date, items]) => {
@@ -241,7 +288,7 @@ function LedgerPage() {
                         t.type === "expense" ? "bg-secondary" : "bg-primary-soft"
                       }`}
                     >
-                      {t.type === "expense" ? "🛒" : "💰"}
+                      {categoryEmoji[t.category] || (t.type === "expense" ? "🛒" : "💰")}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-sm truncate">
@@ -296,13 +343,13 @@ function LedgerPage() {
   );
 }
 
-function TxnRow({ t, onDelete }: { t: ReturnType<typeof useAppStore.getState>["transactions"][number]; onDelete: () => void }) {
+function TxnRow({ t, emoji, onDelete }: { t: ReturnType<typeof useAppStore.getState>["transactions"][number]; emoji?: string; onDelete: () => void }) {
   return (
     <div className="flex items-center gap-3 p-3 rounded-2xl bg-card border border-border/60 shadow-soft">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-lg ${
         t.type === "expense" ? "bg-secondary" : "bg-primary-soft"
       }`}>
-        {t.type === "expense" ? "🛒" : "💰"}
+        {emoji || (t.type === "expense" ? "🛒" : "💰")}
       </div>
       <div className="flex-1 min-w-0">
         <p className="font-medium text-sm truncate">

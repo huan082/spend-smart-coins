@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as RemindersRouteImport } from './routes/reminders'
 import { Route as RedeemRouteImport } from './routes/redeem'
 import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as PointsRouteImport } from './routes/points'
@@ -37,6 +38,11 @@ import { Route as DealsEditIdRouteImport } from './routes/deals.edit.$id'
 const SettingsRoute = SettingsRouteImport.update({
   id: '/settings',
   path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RemindersRoute = RemindersRouteImport.update({
+  id: '/reminders',
+  path: '/reminders',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RedeemRoute = RedeemRouteImport.update({
@@ -170,6 +176,7 @@ export interface FileRoutesByFullPath {
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
+  '/reminders': typeof RemindersRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
@@ -196,6 +203,7 @@ export interface FileRoutesByTo {
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
+  '/reminders': typeof RemindersRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
@@ -223,6 +231,7 @@ export interface FileRoutesById {
   '/points': typeof PointsRoute
   '/profile': typeof ProfileRoute
   '/redeem': typeof RedeemRoute
+  '/reminders': typeof RemindersRoute
   '/settings': typeof SettingsRoute
   '/deals/new': typeof DealsNewRoute
   '/goals/new': typeof GoalsNewRoute
@@ -251,6 +260,7 @@ export interface FileRouteTypes {
     | '/points'
     | '/profile'
     | '/redeem'
+    | '/reminders'
     | '/settings'
     | '/deals/new'
     | '/goals/new'
@@ -277,6 +287,7 @@ export interface FileRouteTypes {
     | '/points'
     | '/profile'
     | '/redeem'
+    | '/reminders'
     | '/settings'
     | '/deals/new'
     | '/goals/new'
@@ -303,6 +314,7 @@ export interface FileRouteTypes {
     | '/points'
     | '/profile'
     | '/redeem'
+    | '/reminders'
     | '/settings'
     | '/deals/new'
     | '/goals/new'
@@ -330,6 +342,7 @@ export interface RootRouteChildren {
   PointsRoute: typeof PointsRoute
   ProfileRoute: typeof ProfileRoute
   RedeemRoute: typeof RedeemRoute
+  RemindersRoute: typeof RemindersRoute
   SettingsRoute: typeof SettingsRoute
   DealsNewRoute: typeof DealsNewRoute
   GoalsNewRoute: typeof GoalsNewRoute
@@ -349,6 +362,13 @@ declare module '@tanstack/react-router' {
       path: '/settings'
       fullPath: '/settings'
       preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reminders': {
+      id: '/reminders'
+      path: '/reminders'
+      fullPath: '/reminders'
+      preLoaderRoute: typeof RemindersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/redeem': {
@@ -530,6 +550,7 @@ const rootRouteChildren: RootRouteChildren = {
   PointsRoute: PointsRoute,
   ProfileRoute: ProfileRoute,
   RedeemRoute: RedeemRoute,
+  RemindersRoute: RemindersRoute,
   SettingsRoute: SettingsRoute,
   DealsNewRoute: DealsNewRoute,
   GoalsNewRoute: GoalsNewRoute,

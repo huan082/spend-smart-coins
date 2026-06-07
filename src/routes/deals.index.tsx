@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
+import { Plus as ZoomPlus, Minus as ZoomMinus } from "lucide-react";
 import {
   Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
   Bookmark, BookmarkCheck, RefreshCw, Globe,
@@ -412,9 +413,10 @@ function DealCard({
   );
 }
 
-// 模擬地圖：把優惠店家以位置散點呈現
+// 模擬地圖：把優惠店家以位置散點呈現（高雄市 燕巢/大社/岡山/楠梓）
 type Pin = { id: string; store: string; lat: number; lng: number; kind: "post" | "scraped" };
 function MapView({ pins }: { pins: Pin[] }) {
+  const [scale, setScale] = useState(1);
   if (pins.length === 0) {
     return (
       <div className="h-56 rounded-3xl bg-[linear-gradient(135deg,#E8F0E4_0%,#DDEAF0_100%)] border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
@@ -425,17 +427,19 @@ function MapView({ pins }: { pins: Pin[] }) {
       </div>
     );
   }
-  const lats = pins.map((d) => d.lat);
-  const lngs = pins.map((d) => d.lng);
-  const minLat = Math.min(...lats) - 0.005;
-  const maxLat = Math.max(...lats) + 0.005;
-  const minLng = Math.min(...lngs) - 0.005;
-  const maxLng = Math.max(...lngs) + 0.005;
+  // 高雄北部四區的經緯度範圍（岡山在西北、燕巢在東北、楠梓在西南、大社在東南）
+  const minLat = 22.715, maxLat = 22.810;
+  const minLng = 120.275, maxLng = 120.385;
   const span = (n: number, min: number, max: number) =>
     max === min ? 50 : ((n - min) / (max - min)) * 100;
 
   return (
     <div className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4]">
+      {/* 可縮放層 */}
+      <div
+        className="absolute inset-0 origin-center transition-transform duration-200"
+        style={{ transform: `scale(${scale})` }}
+      >
       {/* 仿地圖底圖：水域 / 綠地 / 道路 */}
       <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
         {/* 綠地公園色塊 */}
@@ -477,26 +481,20 @@ function MapView({ pins }: { pins: Pin[] }) {
         </g>
       </svg>
 
-      {/* 區域標籤 */}
-      <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">中山區</div>
-      <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">大安區</div>
-      <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70">大安森林公園</div>
-      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#3F6E82] px-2 py-0.5">基隆河</div>
+      {/* 區域標籤（高雄四區） */}
+      <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">岡山區</div>
+      <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">燕巢區</div>
+      <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">楠梓區</div>
+      <div className="absolute bottom-12 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">大社區</div>
+      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 text-[10px] font-bold text-[#3F6E82] px-2 py-0.5">阿公店溪</div>
 
-      {/* 中心標示「我的位置」 */}
-      <div className="absolute left-1/2 top-[44%] -translate-x-1/2 -translate-y-1/2 z-10">
+      {/* 「我的位置」：燕巢區（右上） */}
+      <div className="absolute right-[22%] top-[24%] z-10">
         <div className="relative flex items-center justify-center">
           <div className="absolute w-8 h-8 rounded-full bg-tertiary/40 animate-ping" />
           <div className="relative w-3.5 h-3.5 rounded-full bg-tertiary border-2 border-card shadow-soft" />
         </div>
         <p className="text-[9px] font-bold text-tertiary-foreground mt-1 text-center whitespace-nowrap">我的位置</p>
-      </div>
-
-      {/* 縮放控制（裝飾） */}
-      <div className="absolute top-3 right-1/2 translate-x-1/2 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground text-sm font-bold">
-        <button className="w-7 h-7 hover:bg-muted leading-none">＋</button>
-        <div className="h-px bg-border" />
-        <button className="w-7 h-7 hover:bg-muted leading-none">－</button>
       </div>
 
       {pins.map((d) => {
@@ -514,8 +512,32 @@ function MapView({ pins }: { pins: Pin[] }) {
           </div>
         );
       })}
+      </div>
 
-      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft">
+      {/* 縮放控制（可運作） */}
+      <div className="absolute top-3 right-3 z-30 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground">
+        <button
+          type="button"
+          onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))}
+          disabled={scale >= 3}
+          aria-label="放大"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
+        >
+          <ZoomPlus className="w-4 h-4" />
+        </button>
+        <div className="h-px bg-border" />
+        <button
+          type="button"
+          onClick={() => setScale((s) => Math.max(1, +(s - 0.25).toFixed(2)))}
+          disabled={scale <= 1}
+          aria-label="縮小"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
+        >
+          <ZoomMinus className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />用戶分享</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />優惠店家</span>
       </div>
