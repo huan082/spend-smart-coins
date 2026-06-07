@@ -51,10 +51,14 @@ function NewTxn() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!amount) return;
+    const n = Number(amount);
+    if (!amount.trim() || !Number.isFinite(n) || n <= 0) {
+      alert("請輸入正確金額（需為大於 0 的數字）");
+      return;
+    }
     addTransaction({
       type,
-      amount: Number(amount),
+      amount: n,
       category,
       store: store || undefined,
       note,
