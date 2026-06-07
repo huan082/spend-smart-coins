@@ -52,8 +52,13 @@ function EditTxn() {
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
+    const n = Number(amount);
+    if (!String(amount).trim() || !Number.isFinite(n) || n <= 0) {
+      alert("請輸入正確金額（需為大於 0 的數字）");
+      return;
+    }
     update(id, {
-      type, amount: Number(amount), category,
+      type, amount: n, category,
       store: store || undefined, note, photo,
       date: new Date(date).toISOString(),
     });
