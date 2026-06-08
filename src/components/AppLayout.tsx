@@ -30,6 +30,7 @@ export function AppLayout({
 }: Props) {
   const user = useAppStore((s) => s.user);
   const currentTheme = useAppStore((s) => s.currentTheme);
+  const hasHydrated = useAppStore((s) => s.hasHydrated);
   const [hydrated, setHydrated] = useState(didHydrate);
   useEffect(() => {
     didHydrate = true;
@@ -38,7 +39,7 @@ export function AppLayout({
   useEffect(() => {
     document.documentElement.dataset.theme = currentTheme;
   }, [currentTheme]);
-  if (!hydrated) {
+  if (!hydrated || !hasHydrated) {
     return (
       <PhoneFrame>
         <div className="flex-1" />

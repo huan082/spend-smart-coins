@@ -110,6 +110,7 @@ export type AppTheme = "morandi" | "ocean" | "sakura" | "midnight" | "forest";
 export type AppMode = "normal" | "savage" | "gentle" | "cheer" | "zen";
 
 interface AppState {
+  hasHydrated: boolean;
   user: User | null;
   weeklyBudget: number;
   transactions: Transaction[];
@@ -227,6 +228,7 @@ interface AppState {
   toggleBillReminder: () => void;
 
   // data management
+  setHasHydrated: (value: boolean) => void;
   clearAllData: () => void;
 }
 
@@ -377,6 +379,7 @@ const SEED_SCRAPED_DEALS: ScrapedDeal[] = [
 export const useAppStore = create<AppState>()(
   persist(
     (set, get) => ({
+      hasHydrated: false,
       user: null,
       weeklyBudget: 0,
       transactions: [],
@@ -763,6 +766,8 @@ export const useAppStore = create<AppState>()(
           s.ownedAvatars.includes(a) ? s : { ownedAvatars: [...s.ownedAvatars, a] }
         ),
 
+      setHasHydrated: (value) => set({ hasHydrated: value }),
+
       clearAllData: () =>
         set({
           transactions: [],
@@ -790,7 +795,16 @@ export const useAppStore = create<AppState>()(
         set({ scrapedDeals: shuffled, scrapedFetchedAt: new Date().toISOString() });
       },
     }),
-    { name: "money-app-store" }
+    {
+      name: "money-app-store",
+      partialize: (state) => {
+        const { hasHydrated, setHasHydrated, ...persistedState } = state;
+        return persistedState;
+      },
+      onRehydrateStorage: (state) => () => {
+        state.setHasHydrated(true);
+      },
+    }
   )
 );
 
