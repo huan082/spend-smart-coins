@@ -41,9 +41,9 @@ function NewDeal() {
       url: url || undefined,
       address: address || undefined,
       photo,
-      // 有填地址才在地圖上顯示（demo：隨機台北座標）
-      lat: address ? 25.04 + Math.random() * 0.03 : undefined,
-      lng: address ? 121.53 + Math.random() * 0.03 : undefined,
+      // 有填地址才在地圖上顯示（demo：落在高雄燕巢/大社/岡山/楠梓範圍）
+      lat: address ? 22.72 + Math.random() * 0.08 : undefined,
+      lng: address ? 120.29 + Math.random() * 0.08 : undefined,
     });
     navigate({ to: "/deals" });
   };

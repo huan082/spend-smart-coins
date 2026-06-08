@@ -29,7 +29,8 @@ function HomePage() {
   const monthIncome = monthTxns.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
 
   const upcomingBills = getUpcomingBills(bills);
-  const upcomingTotal = upcomingBills.reduce((s, b) => s + b.amount, 0);
+  const enabledBills = bills.filter((b) => b.enabled);
+  const monthlyBillTotal = enabledBills.reduce((s, b) => s + b.amount, 0);
 
   const remaining = weeklyBudget - weekSpent;
   const pct = weeklyBudget > 0 ? Math.min(100, (weekSpent / weeklyBudget) * 100) : 0;
@@ -122,10 +123,10 @@ function HomePage() {
               <Receipt className="w-3.5 h-3.5 text-primary" />
             </div>
             <p className="text-xs text-muted-foreground mb-0.5">
-              待繳帳單 ({upcomingBills.length})
+              固定帳單 ({enabledBills.length})
             </p>
             <p className="font-display font-extrabold text-xl">
-              ${upcomingTotal.toLocaleString()}
+              ${monthlyBillTotal.toLocaleString()}
             </p>
           </Link>
         </div>
@@ -244,7 +245,8 @@ function HomePage() {
             </div>
             <div className="space-y-2">
               {goals.slice(0, 2).map((g) => {
-                const p = Math.min(100, (g.saved / g.targetAmount) * 100);
+                const effectiveTarget = g.currentPrice && g.currentPrice > 0 ? g.currentPrice : g.targetAmount;
+                const p = Math.min(100, (g.saved / effectiveTarget) * 100);
                 return (
                   <div
                     key={g.id}

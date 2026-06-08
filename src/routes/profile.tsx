@@ -1,9 +1,9 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import {
-  useAppStore, type AppTheme, type AppMode,
+  useAppStore, type AppTheme, type AppMode, type User,
 } from "@/store/useAppStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Palette, Sparkles, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/profile")({
@@ -59,6 +59,18 @@ function ProfilePage() {
   });
 
   const set = (k: keyof typeof form, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+  useEffect(() => {
+    if (!user) return;
+    setForm({
+      nickname: user.nickname || "",
+      avatar: user.avatar || "🌿",
+      email: user.email || "",
+      phone: user.phone || "",
+      gender: user.gender || "",
+      birthday: user.birthday || "",
+    });
+  }, [user]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -255,6 +267,3 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
     </div>
   );
 }
-
-// type-only re-import to satisfy ts
-import type { User } from "@/store/useAppStore";

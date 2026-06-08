@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getWeekRange, getMonthRange } from "@/store/useAppStore";
-import { useState, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Sparkles, AlertCircle, Bell } from "lucide-react";
 
 export const Route = createFileRoute("/budget")({
@@ -18,6 +18,10 @@ function BudgetPage() {
   } = useAppStore();
   const [input, setInput] = useState(weeklyBudget ? weeklyBudget.toString() : "");
   const [savedAt, setSavedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    setInput(weeklyBudget ? weeklyBudget.toString() : "");
+  }, [weeklyBudget]);
 
   const { start: ws, end: we } = getWeekRange();
   const { start: ms, end: me } = getMonthRange();

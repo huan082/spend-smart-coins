@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Image as ImageIcon, X } from "lucide-react";
 
 export const Route = createFileRoute("/deals/edit/$id")({
@@ -22,6 +22,16 @@ function EditDeal() {
   const [url, setUrl] = useState(deal?.url || "");
   const [address, setAddress] = useState(deal?.address || "");
   const [photo, setPhoto] = useState<string | undefined>(deal?.photo);
+
+  useEffect(() => {
+    if (!deal) return;
+    setTitle(deal.title);
+    setStore(deal.store);
+    setDescription(deal.description);
+    setUrl(deal.url || "");
+    setAddress(deal.address || "");
+    setPhoto(deal.photo);
+  }, [deal]);
 
   if (!deal) {
     return (
@@ -47,9 +57,9 @@ function EditDeal() {
       url: url || undefined,
       address: address || undefined,
       photo,
-      // 有填地址才放在地圖上；給 demo 隨機台北座標
-      lat: address ? deal.lat ?? 25.04 + Math.random() * 0.03 : undefined,
-      lng: address ? deal.lng ?? 121.53 + Math.random() * 0.03 : undefined,
+      // 有填地址才放在地圖上；demo 座標落在高雄燕巢/大社/岡山/楠梓範圍
+      lat: address ? deal.lat ?? 22.72 + Math.random() * 0.08 : undefined,
+      lng: address ? deal.lng ?? 120.29 + Math.random() * 0.08 : undefined,
     });
     navigate({ to: "/deals" });
   };

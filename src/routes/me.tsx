@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Settings, Bell, LogOut, ChevronRight, Edit3, Coins, Gift, Lock } from "lucide-react";
 
 export const Route = createFileRoute("/me")({
@@ -19,6 +19,12 @@ function MePage() {
   const [avatar, setAvatar] = useState(user?.avatar || "🌿");
 
   const budgetSet = weeklyBudget > 0;
+
+  useEffect(() => {
+    if (!user) return;
+    setNickname(user.nickname || "");
+    setAvatar(user.avatar || "🌿");
+  }, [user]);
 
   const save = () => {
     updateProfile({ nickname, avatar });
