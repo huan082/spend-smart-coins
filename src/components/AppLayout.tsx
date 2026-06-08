@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect } from "react";
 import { PhoneFrame } from "./PhoneFrame";
 import { BottomNav } from "./BottomNav";
 import { AppHeader } from "./AppHeader";
@@ -15,10 +15,6 @@ interface Props {
   requireAuth?: boolean;
 }
 
-// Module-level hydration flag — only true once after the first client mount,
-// so subsequent route changes don't re-trigger a blank "hydrating" frame.
-let didHydrate = false;
-
 export function AppLayout({
   title,
   children,
@@ -31,15 +27,14 @@ export function AppLayout({
   const user = useAppStore((s) => s.user);
   const currentTheme = useAppStore((s) => s.currentTheme);
   const hasHydrated = useAppStore((s) => s.hasHydrated);
-  const [hydrated, setHydrated] = useState(didHydrate);
-  useEffect(() => {
-    didHydrate = true;
-    setHydrated(true);
-  }, []);
+  const syncDueBills = useAppStore((s) => s.syncDueBills);
   useEffect(() => {
     document.documentElement.dataset.theme = currentTheme;
   }, [currentTheme]);
-  if (!hydrated || !hasHydrated) {
+  useEffect(() => {
+    if (hasHydrated && user) syncDueBills();
+  }, [hasHydrated, user, syncDueBills]);
+  if (!hasHydrated) {
     return (
       <PhoneFrame>
         <div className="flex-1" />

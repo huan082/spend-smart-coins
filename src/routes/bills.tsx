@@ -105,10 +105,16 @@ function BillsPage() {
         ))}
 
         <button
-          onClick={() => navigate({ to: "/settings" })}
+          onClick={() => {
+            if (typeof window !== "undefined" && window.history.length > 1) {
+              window.history.back();
+            } else {
+              navigate({ to: "/home" });
+            }
+          }}
           className="w-full py-3 text-sm text-muted-foreground"
         >
-          ← 回到設定
+          ← 返回上一頁
         </button>
       </div>
 
@@ -143,12 +149,23 @@ function BillForm({
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name || !amount || !dueDay) return;
+    const n = Number(amount);
+    const d = Number(dueDay);
+    if (!name.trim()) return;
+    if (!amount.trim() || !Number.isFinite(n) || n <= 0) {
+      alert("請輸入正確金額（需為大於 0 的數字）");
+      return;
+    }
+    if (!dueDay.trim() || !Number.isFinite(d) || d < 1 || d > 31) {
+      alert("請輸入 1 到 31 之間的扣款日");
+      return;
+    }
     onSave({
-      name,
-      amount: Number(amount),
-      dueDay: Math.max(1, Math.min(31, Number(dueDay))),
+      name: name.trim(),
+      amount: n,
+      dueDay: Math.max(1, Math.min(31, d)),
       enabled,
+      category: bill?.category || "居家",
     });
   };
 

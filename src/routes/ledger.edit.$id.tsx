@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
-import { useState, useRef } from "react";
+import { useEffect, useState, useRef } from "react";
 import { X, Image as ImageIcon, Plus } from "lucide-react";
 
 export const Route = createFileRoute("/ledger/edit/$id")({
@@ -32,6 +32,17 @@ function EditTxn() {
   const [newCatEmoji, setNewCatEmoji] = useState("🌿");
   const [showAddStore, setShowAddStore] = useState(false);
   const [newStore, setNewStore] = useState("");
+
+  useEffect(() => {
+    if (!txn) return;
+    setType(txn.type);
+    setAmount(txn.amount.toString());
+    setCategory(txn.category);
+    setStore(txn.store || "");
+    setNote(txn.note || "");
+    setPhoto(txn.photo);
+    setDate(txn.date.slice(0, 10));
+  }, [txn]);
 
   if (!txn) {
     return (

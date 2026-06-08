@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore } from "@/store/useAppStore";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export const Route = createFileRoute("/goals/edit/$id")({
   component: EditGoal,
@@ -23,6 +23,19 @@ function EditGoal() {
   const [currentPrice, setCurrentPrice] = useState(goal?.currentPrice?.toString() || "");
   const [originalPrice, setOriginalPrice] = useState(goal?.originalPrice?.toString() || "");
   const [notify, setNotify] = useState(goal?.notifyOnDrop ?? true);
+
+  useEffect(() => {
+    if (!goal) return;
+    setName(goal.name);
+    setTarget(goal.targetAmount.toString());
+    setSaved(goal.saved.toString());
+    setDeadline(goal.deadline || "");
+    setUrl(goal.productUrl || "");
+    setCategory(goal.category || "");
+    setCurrentPrice(goal.currentPrice?.toString() || "");
+    setOriginalPrice(goal.originalPrice?.toString() || "");
+    setNotify(goal.notifyOnDrop ?? true);
+  }, [goal]);
 
   if (!goal) {
     return (

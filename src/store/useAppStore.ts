@@ -58,6 +58,7 @@ export interface Bill {
   dueDay: number; // 1-31
   enabled: boolean;
   category?: string;
+  lastPostedMonth?: string; // YYYY-MM，自動入帳去重用
 }
 
 export interface User {
@@ -217,6 +218,7 @@ interface AppState {
   addBill: (b: Omit<Bill, "id">) => void;
   updateBill: (id: string, b: Partial<Bill>) => void;
   deleteBill: (id: string) => void;
+  syncDueBills: (today?: Date) => void;
 
   // settings toggles
   toggleBudgetAlert: () => void;
@@ -661,10 +663,40 @@ export const useAppStore = create<AppState>()(
       removeStore: (name) =>
         set((s) => ({ stores: s.stores.filter((x) => x !== name) })),
 
-      addBill: (b) => set((s) => ({ bills: [{ ...b, id: uid() }, ...s.bills] })),
-      updateBill: (id, b) =>
-        set((s) => ({ bills: s.bills.map((x) => (x.id === id ? { ...x, ...b } : x)) })),
+      addBill: (b) => {
+        set((s) => ({ bills: [{ ...b, id: uid() }, ...s.bills] }));
+        get().syncDueBills();
+      },
+      updateBill: (id, b) => {
+        set((s) => ({ bills: s.bills.map((x) => (x.id === id ? { ...x, ...b } : x)) }));
+        get().syncDueBills();
+      },
       deleteBill: (id) => set((s) => ({ bills: s.bills.filter((x) => x.id !== id) })),
+      syncDueBills: (today = new Date()) => {
+        const yearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
+        const day = today.getDate();
+        const dueBills = get().bills.filter(
+          (b) => b.enabled && b.dueDay <= day && b.lastPostedMonth !== yearMonth
+        );
+        if (dueBills.length === 0) return;
+        set((s) => ({
+          transactions: [
+            ...dueBills.map((b) => ({
+              id: uid(),
+              type: "expense" as const,
+              amount: b.amount,
+              category: b.category || "居家",
+              store: b.name,
+              note: `[固定帳單] ${b.name}`,
+              date: new Date(today.getFullYear(), today.getMonth(), Math.min(b.dueDay, day), 12).toISOString(),
+            })),
+            ...s.transactions,
+          ],
+          bills: s.bills.map((b) =>
+            dueBills.some((d) => d.id === b.id) ? { ...b, lastPostedMonth: yearMonth } : b
+          ),
+        }));
+      },
 
       toggleBudgetAlert: () => set((s) => ({ budgetAlertEnabled: !s.budgetAlertEnabled })),
       toggleLedgerReminder: () =>
@@ -827,10 +859,11 @@ export function getMonthRange(date = new Date()) {
   return { start, end };
 }
 
-// 取得本月待繳帳單（dueDay 還沒到的 enabled 帳單）
+// 取得本月待繳帳單（尚未自動入帳、且 dueDay 還沒到的 enabled 帳單）
 export function getUpcomingBills(bills: Bill[], today = new Date()) {
   const day = today.getDate();
+  const yearMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}`;
   return bills
-    .filter((b) => b.enabled && b.dueDay >= day)
+    .filter((b) => b.enabled && b.dueDay >= day && b.lastPostedMonth !== yearMonth)
     .sort((a, b) => a.dueDay - b.dueDay);
 }
