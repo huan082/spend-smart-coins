@@ -454,8 +454,6 @@ function MapView({ pins }: { pins: Pin[] }) {
         <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
         <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
         <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
-        {/* 河流 / 水域 */}
-        <path d="M-20 200 Q 80 170 160 210 T 320 220 T 420 200 L 420 260 Q 320 290 200 260 T 0 270 Z" fill="#B7D3DE" opacity="0.9" />
         {/* 街區地塊 */}
         <g fill="#F2F1EA" opacity="0.7">
           <rect x="40" y="20" width="50" height="40" rx="4" />
@@ -495,8 +493,8 @@ function MapView({ pins }: { pins: Pin[] }) {
       <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">楠梓區</div>
       <div className="absolute bottom-12 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">大社區</div>
 
-      {/* 阿公店水庫：燕巢西側、靠近岡山交界 */}
-      <div className="absolute z-10" style={{ left: "38%", top: "26%" }}>
+      {/* 阿公店水庫：燕巢西側、靠近燕巢區中心 */}
+      <div className="absolute z-10" style={{ left: "58%", top: "14%" }}>
         <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
           <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
           <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
@@ -506,7 +504,6 @@ function MapView({ pins }: { pins: Pin[] }) {
       {/* 主要地標 */}
       {[
         { name: "岡山火車站", left: "16%", top: "38%", icon: "🚉" },
-        { name: "義大世界", left: "78%", top: "30%", icon: "🎢" },
         { name: "楠梓加工區", left: "20%", top: "78%", icon: "🏭" },
         { name: "大社觀音山", left: "80%", top: "75%", icon: "⛰️" },
         { name: "岡山醫院", left: "12%", top: "18%", icon: "🏥" },
@@ -519,6 +516,28 @@ function MapView({ pins }: { pins: Pin[] }) {
           <span className="text-base leading-none">{lm.icon}</span>
           <span className="text-[9px] text-foreground/70 mt-0.5 whitespace-nowrap bg-card/70 px-1 rounded">
             {lm.name}
+          </span>
+        </div>
+      ))}
+
+      {/* 優惠店家標示（固定展示） */}
+      {[
+        { name: "全聯", left: "28%", top: "28%", icon: "🏪" },
+        { name: "7-11", left: "72%", top: "20%", icon: "🏪" },
+        { name: "全家", left: "22%", top: "22%", icon: "🏪" },
+        { name: "星巴克", left: "48%", top: "32%", icon: "☕" },
+        { name: "麥當勞", left: "75%", top: "68%", icon: "🍟" },
+        { name: "屈臣氏", left: "18%", top: "82%", icon: "💊" },
+        { name: "萊爾富", left: "68%", top: "16%", icon: "🏪" },
+      ].map((s) => (
+        <div
+          key={s.name}
+          className="absolute z-10 flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
+          style={{ left: s.left, top: s.top }}
+        >
+          <span className="text-base leading-none">{s.icon}</span>
+          <span className="text-[9px] text-foreground/80 mt-0.5 whitespace-nowrap bg-primary/15 text-primary font-bold px-1.5 py-0.5 rounded-full border border-primary/30">
+            {s.name}
           </span>
         </div>
       ))}
