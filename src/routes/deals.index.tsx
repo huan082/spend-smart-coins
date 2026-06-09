@@ -32,10 +32,18 @@ function DealsPage() {
 
   const frequentStores = useMemo(() => {
     const { start, end } = getMonthRange();
+    const billNames = new Set(useAppStore.getState().bills.map((b) => b.name));
     const map = new Map<string, number>();
     transactions.forEach((t) => {
       const d = new Date(t.date);
-      if (t.type === "expense" && t.store && d >= start && d < end) {
+      if (
+        t.type === "expense" &&
+        t.store &&
+        d >= start &&
+        d < end &&
+        !t.note?.startsWith("[固定帳單]") &&
+        !billNames.has(t.store)
+      ) {
         map.set(t.store, (map.get(t.store) || 0) + 1);
       }
     });
