@@ -493,8 +493,8 @@ function MapView({ pins }: { pins: Pin[] }) {
       <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">楠梓區</div>
       <div className="absolute bottom-12 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">大社區</div>
 
-      {/* 阿公店水庫：燕巢西側、靠近岡山交界 */}
-      <div className="absolute z-10" style={{ left: "38%", top: "26%" }}>
+      {/* 阿公店水庫：燕巢西側、靠近燕巢區中心 */}
+      <div className="absolute z-10" style={{ left: "58%", top: "14%" }}>
         <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
           <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
           <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
