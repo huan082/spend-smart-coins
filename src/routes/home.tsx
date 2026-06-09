@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange, getWeekRange, getUpcomingBills } from "@/store/useAppStore";
+import { useMemo } from "react";
 import { motion } from "framer-motion";
 import { Lock, TrendingUp, Sparkles, Plus, BarChart3, Receipt, Calendar } from "lucide-react";
 
@@ -10,7 +11,13 @@ export const Route = createFileRoute("/home")({
 });
 
 function HomePage() {
-  const { user, weeklyBudget, transactions, points, goals, bills } = useAppStore();
+  const { user, weeklyBudget, transactions, points, goals, bills, expenseCategories, incomeCategories } = useAppStore();
+  const categoryEmoji = useMemo(() => {
+    const map: Record<string, string> = {};
+    expenseCategories.forEach((c) => (map[c.name] = c.emoji));
+    incomeCategories.forEach((c) => (map[c.name] = c.emoji));
+    return map;
+  }, [expenseCategories, incomeCategories]);
   const { start: ws, end: we } = getWeekRange();
   const { start: ms, end: me2 } = getMonthRange();
 
@@ -203,7 +210,7 @@ function HomePage() {
                     t.type === "expense" ? "bg-secondary" : "bg-primary-soft"
                   }`}
                 >
-                  {t.type === "expense" ? "🛒" : "💰"}
+                  {categoryEmoji[t.category] || (t.type === "expense" ? "🛒" : "💰")}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">

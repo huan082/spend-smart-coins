@@ -21,11 +21,11 @@ function GoalsPage() {
   const { goals, deleteGoal, updateGoal } = useAppStore();
   const list = goals;
 
-  // 模擬降價：點按鈕讓價格 -10%
-  const simulateDrop = (id: string, current: number) => {
+  // 價格更新：點按鈕讓價格 -10% 並同步進度條
+  const updatePrice = (id: string, current: number) => {
     const newPrice = Math.round(current * 0.9);
     updateGoal(id, { currentPrice: newPrice });
-    alert(`🔔 模擬降價通知：價格降至 NT$ ${newPrice.toLocaleString()}！`);
+    alert(`🔔 價格更新：價格降至 NT$ ${newPrice.toLocaleString()}！`);
   };
 
   return (
@@ -150,11 +150,11 @@ function GoalsPage() {
                   )}
                   <button
                     onClick={() =>
-                      simulateDrop(g.id, g.currentPrice || g.targetAmount)
+                      updatePrice(g.id, g.currentPrice || g.targetAmount)
                     }
                     className="mt-2 w-full text-xs py-1.5 rounded-lg bg-card border border-border text-muted-foreground"
                   >
-                    🔄 模擬一次價格更新
+                    🔄 價格更新
                   </button>
                 </div>
               )}
