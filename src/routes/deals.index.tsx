@@ -520,6 +520,28 @@ function MapView({ pins }: { pins: Pin[] }) {
         </div>
       ))}
 
+      {/* 優惠店家標示（固定展示） */}
+      {[
+        { name: "全聯", left: "28%", top: "28%", icon: "🏪" },
+        { name: "7-11", left: "72%", top: "20%", icon: "🏪" },
+        { name: "全家", left: "22%", top: "22%", icon: "🏪" },
+        { name: "星巴克", left: "48%", top: "32%", icon: "☕" },
+        { name: "麥當勞", left: "75%", top: "68%", icon: "🍟" },
+        { name: "屈臣氏", left: "18%", top: "82%", icon: "💊" },
+        { name: "萊爾富", left: "68%", top: "16%", icon: "🏪" },
+      ].map((s) => (
+        <div
+          key={s.name}
+          className="absolute z-10 flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
+          style={{ left: s.left, top: s.top }}
+        >
+          <span className="text-base leading-none">{s.icon}</span>
+          <span className="text-[9px] text-foreground/80 mt-0.5 whitespace-nowrap bg-primary/15 text-primary font-bold px-1.5 py-0.5 rounded-full border border-primary/30">
+            {s.name}
+          </span>
+        </div>
+      ))}
+
       {/* 「我的位置」：燕巢區（右上） */}
       <div className="absolute right-[22%] top-[24%] z-10">
         <div className="relative flex items-center justify-center">
