@@ -34,14 +34,9 @@ export function AppLayout({
   useEffect(() => {
     if (hasHydrated && user) syncDueBills();
   }, [hasHydrated, user, syncDueBills]);
-  if (!hasHydrated) {
-    return (
-      <PhoneFrame>
-        <div className="flex-1" />
-      </PhoneFrame>
-    );
-  }
-  if (requireAuth && !user) return <Navigate to="/login" />;
+  // 只在「需要登入」且確定已水合卻沒有 user 時才導去登入頁；
+  // 不再用 hasHydrated 來阻擋整頁渲染，避免每次切頁都閃一下。
+  if (requireAuth && hasHydrated && !user) return <Navigate to="/login" />;
 
   return (
     <PhoneFrame>
