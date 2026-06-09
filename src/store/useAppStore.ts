@@ -866,6 +866,16 @@ export const useAppStore = create<AppState>()(
   )
 );
 
+// localStorage 水合是同步的，但 onRehydrateStorage 回呼在下一個 tick 才執行，
+// 為避免首次掛載時 hasHydrated 仍為 false 造成的閃爍，這裡在 client 端直接補上。
+if (typeof window !== "undefined") {
+  queueMicrotask(() => {
+    if (!useAppStore.getState().hasHydrated) {
+      useAppStore.setState({ hasHydrated: true });
+    }
+  });
+}
+
 // helpers
 export function getWeekRange(date = new Date()) {
   const d = new Date(date);
