@@ -454,8 +454,6 @@ function MapView({ pins }: { pins: Pin[] }) {
         <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
         <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
         <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
-        {/* 河流 / 水域 */}
-        <path d="M-20 200 Q 80 170 160 210 T 320 220 T 420 200 L 420 260 Q 320 290 200 260 T 0 270 Z" fill="#B7D3DE" opacity="0.9" />
         {/* 街區地塊 */}
         <g fill="#F2F1EA" opacity="0.7">
           <rect x="40" y="20" width="50" height="40" rx="4" />
