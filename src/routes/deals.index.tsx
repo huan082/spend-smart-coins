@@ -504,7 +504,6 @@ function MapView({ pins }: { pins: Pin[] }) {
       {/* 主要地標 */}
       {[
         { name: "岡山火車站", left: "16%", top: "38%", icon: "🚉" },
-        { name: "義大世界", left: "78%", top: "30%", icon: "🎢" },
         { name: "楠梓加工區", left: "20%", top: "78%", icon: "🏭" },
         { name: "大社觀音山", left: "80%", top: "75%", icon: "⛰️" },
         { name: "岡山醫院", left: "12%", top: "18%", icon: "🏥" },
