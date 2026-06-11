@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange } from "@/store/useAppStore";
-import { useState, useMemo } from "react";
-import { Plus as ZoomPlus, Minus as ZoomMinus } from "lucide-react";
+import { useState, useMemo, useRef } from "react";
+import { Plus as ZoomPlus, Minus as ZoomMinus, X as XIcon } from "lucide-react";
 import {
   Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
   Bookmark, BookmarkCheck, RefreshCw, Globe,
@@ -75,8 +75,16 @@ function DealsPage() {
   // 地圖標點：兩者合併
   const allMapPins = useMemo(
     () => [
-      ...userMapDeals.map((d) => ({ id: d.id, store: d.store, lat: d.lat!, lng: d.lng!, kind: "post" as const })),
-      ...scrapedNearby.map((d) => ({ id: d.id, store: d.store, lat: d.lat, lng: d.lng, kind: "scraped" as const })),
+      ...userMapDeals.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat!, lng: d.lng!,
+        kind: "post" as const, title: d.title, description: d.description,
+        address: d.address ?? "", url: d.url,
+      })),
+      ...scrapedNearby.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat, lng: d.lng,
+        kind: "scraped" as const, title: d.title, description: d.description,
+        address: d.address, url: d.url,
+      })),
     ],
     [userMapDeals, scrapedNearby]
   );
@@ -421,157 +429,147 @@ function DealCard({
   );
 }
 
-// 模擬地圖：把優惠店家以位置散點呈現（高雄市 燕巢/大社/岡山/楠梓）
-type Pin = { id: string; store: string; lat: number; lng: number; kind: "post" | "scraped" };
+// 可拖曳 + 縮放的模擬地圖（高雄市 燕巢/大社/岡山/楠梓）
+type Pin = {
+  id: string; store: string; lat: number; lng: number;
+  kind: "post" | "scraped";
+  title: string; description: string; address: string; url?: string;
+};
 function MapView({ pins }: { pins: Pin[] }) {
   const [scale, setScale] = useState(1);
-  if (pins.length === 0) {
-    return (
-      <div className="h-56 rounded-3xl bg-[linear-gradient(135deg,#E8F0E4_0%,#DDEAF0_100%)] border border-border/60 flex items-center justify-center text-muted-foreground text-sm">
-        <div className="text-center">
-          <MapPin className="w-8 h-8 mx-auto mb-2 opacity-50" />
-          目前沒有可顯示的店家位置
-        </div>
-      </div>
-    );
-  }
-  // 高雄北部四區的經緯度範圍（岡山在西北、燕巢在東北、楠梓在西南、大社在東南）
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const dragging = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
+
+  // 高雄北部四區的經緯度範圍
   const minLat = 22.715, maxLat = 22.810;
   const minLng = 120.275, maxLng = 120.385;
   const span = (n: number, min: number, max: number) =>
     max === min ? 50 : ((n - min) / (max - min)) * 100;
 
+  // 拖曳處理
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    dragging.current = { x: e.clientX, y: e.clientY, tx, ty };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - dragging.current.x;
+    const dy = e.clientY - dragging.current.y;
+    setTx(dragging.current.tx + dx);
+    setTy(dragging.current.ty + dy);
+  };
+  const onPointerUp = () => { dragging.current = null; };
+  const resetView = () => { setScale(1); setTx(0); setTy(0); };
+
+  const selectedPin = pins.find((p) => p.id === selected) || null;
+
   return (
-    <div className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4]">
-      {/* 可縮放層 */}
+    <div
+      className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4] touch-none select-none"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ cursor: dragging.current ? "grabbing" : "grab" }}
+    >
+      {/* 可平移 + 縮放層 */}
       <div
-        className="absolute inset-0 origin-center transition-transform duration-200"
-        style={{ transform: `scale(${scale})` }}
+        className="absolute inset-0 origin-center"
+        style={{ transform: `translate(${tx}px, ${ty}px) scale(${scale})` }}
       >
-      {/* 仿地圖底圖：水域 / 綠地 / 道路 */}
-      <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="absolute inset-0 w-full h-full">
-        {/* 綠地公園色塊 */}
-        <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
-        <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
-        <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
-        {/* 街區地塊 */}
-        <g fill="#F2F1EA" opacity="0.7">
-          <rect x="40" y="20" width="50" height="40" rx="4" />
-          <rect x="160" y="40" width="60" height="50" rx="4" />
-          <rect x="240" y="20" width="40" height="50" rx="4" />
-          <rect x="40" y="120" width="70" height="50" rx="4" />
-          <rect x="160" y="120" width="50" height="50" rx="4" />
-          <rect x="240" y="120" width="60" height="40" rx="4" />
-          <rect x="320" y="140" width="60" height="50" rx="4" />
-        </g>
-        {/* 主幹道（粗白線描邊） */}
-        <g stroke="#FFFFFF" strokeWidth="6" fill="none" strokeLinecap="round">
-          <line x1="0" y1="100" x2="400" y2="115" />
-          <line x1="0" y1="180" x2="400" y2="185" />
-          <line x1="130" y1="0" x2="145" y2="300" />
-          <line x1="300" y1="0" x2="315" y2="300" />
-        </g>
-        {/* 道路黃色中線 */}
-        <g stroke="#E8C760" strokeWidth="1.2" strokeDasharray="6 4" fill="none">
-          <line x1="0" y1="100" x2="400" y2="115" />
-          <line x1="0" y1="180" x2="400" y2="185" />
-          <line x1="130" y1="0" x2="145" y2="300" />
-          <line x1="300" y1="0" x2="315" y2="300" />
-        </g>
-        {/* 次要道路 */}
-        <g stroke="#FFFFFF" strokeWidth="3" fill="none">
-          <line x1="0" y1="50" x2="400" y2="55" />
-          <line x1="0" y1="240" x2="400" y2="245" />
-          <line x1="60" y1="0" x2="65" y2="300" />
-          <line x1="220" y1="0" x2="230" y2="300" />
-        </g>
-      </svg>
+        {/* 仿地圖底圖：綠地 / 街區 / 道路 */}
+        <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
+          <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
+          <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
+          <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
+          <g fill="#F2F1EA" opacity="0.7">
+            <rect x="40" y="20" width="50" height="40" rx="4" />
+            <rect x="160" y="40" width="60" height="50" rx="4" />
+            <rect x="240" y="20" width="40" height="50" rx="4" />
+            <rect x="40" y="120" width="70" height="50" rx="4" />
+            <rect x="160" y="120" width="50" height="50" rx="4" />
+            <rect x="240" y="120" width="60" height="40" rx="4" />
+            <rect x="320" y="140" width="60" height="50" rx="4" />
+          </g>
+          <g stroke="#FFFFFF" strokeWidth="6" fill="none" strokeLinecap="round">
+            <line x1="0" y1="100" x2="400" y2="115" />
+            <line x1="0" y1="180" x2="400" y2="185" />
+            <line x1="130" y1="0" x2="145" y2="300" />
+            <line x1="300" y1="0" x2="315" y2="300" />
+          </g>
+          <g stroke="#E8C760" strokeWidth="1.2" strokeDasharray="6 4" fill="none">
+            <line x1="0" y1="100" x2="400" y2="115" />
+            <line x1="0" y1="180" x2="400" y2="185" />
+            <line x1="130" y1="0" x2="145" y2="300" />
+            <line x1="300" y1="0" x2="315" y2="300" />
+          </g>
+          <g stroke="#FFFFFF" strokeWidth="3" fill="none">
+            <line x1="0" y1="50" x2="400" y2="55" />
+            <line x1="0" y1="240" x2="400" y2="245" />
+            <line x1="60" y1="0" x2="65" y2="300" />
+            <line x1="220" y1="0" x2="230" y2="300" />
+          </g>
+        </svg>
 
-      {/* 區域標籤（高雄四區） */}
-      <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">岡山區</div>
-      <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">燕巢區</div>
-      <div className="absolute bottom-12 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">楠梓區</div>
-      <div className="absolute bottom-12 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70">大社區</div>
+        {/* 區域標籤 */}
+        <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">岡山區</div>
+        <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">燕巢區</div>
+        <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">楠梓區</div>
+        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">大社區</div>
 
-      {/* 阿公店水庫：燕巢西側、靠近燕巢區中心 */}
-      <div className="absolute z-10" style={{ left: "58%", top: "14%" }}>
-        <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
-          <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
-          <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
-        </div>
-      </div>
-
-      {/* 主要地標 */}
-      {[
-        { name: "岡山火車站", left: "16%", top: "38%", icon: "🚉" },
-        { name: "楠梓加工區", left: "20%", top: "78%", icon: "🏭" },
-        { name: "大社觀音山", left: "80%", top: "75%", icon: "⛰️" },
-        { name: "岡山醫院", left: "12%", top: "18%", icon: "🏥" },
-      ].map((lm) => (
-        <div
-          key={lm.name}
-          className="absolute z-10 flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
-          style={{ left: lm.left, top: lm.top }}
-        >
-          <span className="text-base leading-none">{lm.icon}</span>
-          <span className="text-[9px] text-foreground/70 mt-0.5 whitespace-nowrap bg-card/70 px-1 rounded">
-            {lm.name}
-          </span>
-        </div>
-      ))}
-
-      {/* 優惠店家標示（固定展示） */}
-      {[
-        { name: "全聯", left: "28%", top: "28%", icon: "🏪" },
-        { name: "7-11", left: "72%", top: "20%", icon: "🏪" },
-        { name: "全家", left: "22%", top: "22%", icon: "🏪" },
-        { name: "星巴克", left: "48%", top: "32%", icon: "☕" },
-        { name: "麥當勞", left: "75%", top: "68%", icon: "🍟" },
-        { name: "屈臣氏", left: "18%", top: "82%", icon: "💊" },
-        { name: "萊爾富", left: "68%", top: "16%", icon: "🏪" },
-      ].map((s) => (
-        <div
-          key={s.name}
-          className="absolute z-10 flex flex-col items-center -translate-x-1/2 -translate-y-1/2"
-          style={{ left: s.left, top: s.top }}
-        >
-          <span className="text-base leading-none">{s.icon}</span>
-          <span className="text-[9px] text-foreground/80 mt-0.5 whitespace-nowrap bg-primary/15 text-primary font-bold px-1.5 py-0.5 rounded-full border border-primary/30">
-            {s.name}
-          </span>
-        </div>
-      ))}
-
-      {/* 「我的位置」：燕巢區（右上） */}
-      <div className="absolute right-[22%] top-[24%] z-10">
-        <div className="relative flex items-center justify-center">
-          <div className="absolute w-8 h-8 rounded-full bg-tertiary/40 animate-ping" />
-          <div className="relative w-3.5 h-3.5 rounded-full bg-tertiary border-2 border-card shadow-soft" />
-        </div>
-        <p className="text-[9px] font-bold text-tertiary-foreground mt-1 text-center whitespace-nowrap">我的位置</p>
-      </div>
-
-      {pins.map((d) => {
-        const left = span(d.lng, minLng, maxLng);
-        const top = 100 - span(d.lat, minLat, maxLat);
-        const color = d.kind === "post" ? "text-destructive" : "text-primary";
-        return (
-          <div key={d.id} className="absolute -translate-x-1/2 -translate-y-full z-20" style={{ left: `${left}%`, top: `${top}%` }}>
-            <div className="flex flex-col items-center">
-              <div className="bg-card text-[10px] font-bold px-2 py-0.5 rounded-full shadow-soft mb-1 whitespace-nowrap max-w-[100px] truncate">
-                {d.store}
-              </div>
-              <MapPin className={`w-7 h-7 drop-shadow-md ${color}`} fill="currentColor" />
-            </div>
+        {/* 阿公店水庫 */}
+        <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
+          <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
+            <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
+            <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
           </div>
-        );
-      })}
+        </div>
+
+        {/* 「我的位置」 */}
+        <div className="absolute right-[22%] top-[24%] pointer-events-none">
+          <div className="relative flex items-center justify-center">
+            <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
+            <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+          </div>
+          <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
+        </div>
+
+        {/* 優惠標點 — 顏色對應圖例（紅=用戶分享, 綠=優惠店家） */}
+        {pins.map((d) => {
+          const left = span(d.lng, minLng, maxLng);
+          const top = 100 - span(d.lat, minLat, maxLat);
+          const isPost = d.kind === "post";
+          const color = isPost ? "#EF4444" : "#10B981";
+          const active = selected === d.id;
+          return (
+            <button
+              key={d.id}
+              type="button"
+              onPointerDown={(e) => e.stopPropagation()}
+              onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
+              className="absolute -translate-x-1/2 -translate-y-full z-20 group"
+              style={{ left: `${left}%`, top: `${top}%` }}
+              aria-label={d.store}
+            >
+              <MapPin
+                className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
+                style={{ color }}
+                fill={color}
+                strokeWidth={1.5}
+                stroke="#fff"
+              />
+            </button>
+          );
+        })}
       </div>
 
-      {/* 縮放控制（可運作） */}
+      {/* 縮放 / 重置控制 */}
       <div className="absolute top-3 right-3 z-30 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground">
         <button
           type="button"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))}
           disabled={scale >= 3}
           aria-label="放大"
@@ -582,6 +580,7 @@ function MapView({ pins }: { pins: Pin[] }) {
         <div className="h-px bg-border" />
         <button
           type="button"
+          onPointerDown={(e) => e.stopPropagation()}
           onClick={() => setScale((s) => Math.max(1, +(s - 0.25).toFixed(2)))}
           disabled={scale <= 1}
           aria-label="縮小"
@@ -589,12 +588,91 @@ function MapView({ pins }: { pins: Pin[] }) {
         >
           <ZoomMinus className="w-4 h-4" />
         </button>
+        <div className="h-px bg-border" />
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={resetView}
+          aria-label="重置"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted text-[10px] font-bold"
+        >
+          重置
+        </button>
       </div>
 
-      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-destructive" />用戶分享</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-primary" />優惠店家</span>
+      {/* 圖例 */}
+      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30 pointer-events-none">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#EF4444" }} />用戶分享</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
       </div>
+
+      {/* 提示 */}
+      {pins.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center text-muted-foreground text-sm bg-card/80 px-3 py-2 rounded-xl">
+            <MapPin className="w-6 h-6 mx-auto mb-1 opacity-50" />
+            目前沒有可顯示的店家位置
+          </div>
+        </div>
+      )}
+
+      {/* 點擊圖標顯示優惠資訊 */}
+      {selectedPin && (
+        <div
+          className="absolute left-2 right-2 bottom-10 z-40 rounded-2xl bg-card border border-border shadow-lg p-3"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5" }}
+            >
+              <MapPin
+                className="w-4 h-4"
+                style={{ color: selectedPin.kind === "post" ? "#EF4444" : "#10B981" }}
+                fill="currentColor"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                  style={{
+                    background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5",
+                    color: selectedPin.kind === "post" ? "#B91C1C" : "#047857",
+                  }}
+                >
+                  {selectedPin.kind === "post" ? "用戶分享" : "優惠店家"}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-bold">{selectedPin.store}</span>
+              </div>
+              <p className="font-bold text-sm truncate">{selectedPin.title}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{selectedPin.description}</p>
+              {selectedPin.address && (
+                <p className="text-[11px] text-muted-foreground mt-1 truncate">📍 {selectedPin.address}</p>
+              )}
+              {selectedPin.url && (
+                <a
+                  href={selectedPin.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-0.5 text-[11px] text-primary mt-1"
+                >
+                  查看詳情 <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="p-1 text-muted-foreground hover:text-foreground"
+              aria-label="關閉"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
