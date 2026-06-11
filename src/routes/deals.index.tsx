@@ -541,56 +541,90 @@ function MapView({ pins }: { pins: Pin[] }) {
           </g>
         </svg>
 
-        {/* 區域標籤 */}
-        <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">岡山區</div>
-        <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">燕巢區</div>
-        <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">楠梓區</div>
-        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">大社區</div>
-
-        {/* 阿公店水庫 */}
-        <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
-          <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
-            <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
-            <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
+        {/* 周邊區域標籤（散佈於四周，平移時可見） */}
+        {[
+          { name: "高鐵左營站", left: "12%", top: "85%" },
+          { name: "義守大學", left: "78%", top: "20%" },
+          { name: "後勁", left: "20%", top: "78%" },
+          { name: "橋頭糖廠", left: "8%", top: "30%" },
+          { name: "仁武區", left: "85%", top: "82%" },
+          { name: "鳥松區", left: "92%", top: "62%" },
+          { name: "彌陀區", left: "6%", top: "12%" },
+          { name: "梓官區", left: "5%", top: "55%" },
+        ].map((l) => (
+          <div
+            key={l.name}
+            className="absolute text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70 pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            style={{ left: l.left, top: l.top }}
+          >
+            {l.name}
           </div>
-        </div>
+        ))}
 
-        {/* 「我的位置」 */}
-        <div className="absolute right-[22%] top-[24%] pointer-events-none">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
-            <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+        {/* 視窗內主要內容（區域標籤 / 地標 / 標點） */}
+        <div
+          className="absolute"
+          style={{ left: "33.333%", top: "33.333%", width: "33.334%", height: "33.334%" }}
+        >
+          {/* 四區標籤 */}
+          <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">岡山區</div>
+          <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">燕巢區</div>
+          <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">楠梓區</div>
+          <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">大社區</div>
+
+          {/* 阿公店水庫 */}
+          <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
+            <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
+              <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
+              <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
+            </div>
           </div>
-          <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
-        </div>
 
-        {/* 優惠標點 — 顏色對應圖例（紅=用戶分享, 綠=優惠店家） */}
-        {pins.map((d) => {
-          const left = span(d.lng, minLng, maxLng);
-          const top = 100 - span(d.lat, minLat, maxLat);
-          const isPost = d.kind === "post";
-          const color = isPost ? "#EF4444" : "#10B981";
-          const active = selected === d.id;
-          return (
-            <button
-              key={d.id}
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
-              className="absolute -translate-x-1/2 -translate-y-full z-20 group"
-              style={{ left: `${left}%`, top: `${top}%` }}
-              aria-label={d.store}
-            >
-              <MapPin
-                className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
-                style={{ color }}
-                fill={color}
-                strokeWidth={1.5}
-                stroke="#fff"
-              />
-            </button>
-          );
-        })}
+          {/* 「我的位置」 */}
+          <div className="absolute right-[22%] top-[24%] pointer-events-none">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
+              <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+            </div>
+            <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
+          </div>
+
+          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家；附店名標籤 */}
+          {pins.map((d) => {
+            const left = span(d.lng, minLng, maxLng);
+            const top = 100 - span(d.lat, minLat, maxLat);
+            const isPost = d.kind === "post";
+            const color = isPost ? "#EF4444" : "#10B981";
+            const bg = isPost ? "#FEE2E2" : "#D1FAE5";
+            const textColor = isPost ? "#B91C1C" : "#047857";
+            const active = selected === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
+                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center"
+                style={{ left: `${left}%`, top: `${top}%` }}
+                aria-label={d.store}
+              >
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[90px] truncate"
+                  style={{ background: bg, color: textColor, borderColor: color }}
+                >
+                  {d.store}
+                </span>
+                <MapPin
+                  className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
+                  style={{ color }}
+                  fill={color}
+                  strokeWidth={1.5}
+                  stroke="#fff"
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 縮放 / 重置控制 */}
