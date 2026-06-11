@@ -2,7 +2,8 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo } from "react";
-import { Plus as ZoomPlus, Minus as ZoomMinus } from "lucide-react";
+import { useRef, useEffect } from "react";
+import { Plus as ZoomPlus, Minus as ZoomMinus, X as XIcon } from "lucide-react";
 import {
   Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
   Bookmark, BookmarkCheck, RefreshCw, Globe,
@@ -75,8 +76,16 @@ function DealsPage() {
   // 地圖標點：兩者合併
   const allMapPins = useMemo(
     () => [
-      ...userMapDeals.map((d) => ({ id: d.id, store: d.store, lat: d.lat!, lng: d.lng!, kind: "post" as const })),
-      ...scrapedNearby.map((d) => ({ id: d.id, store: d.store, lat: d.lat, lng: d.lng, kind: "scraped" as const })),
+      ...userMapDeals.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat!, lng: d.lng!,
+        kind: "post" as const, title: d.title, description: d.description,
+        address: d.address ?? "", url: d.url,
+      })),
+      ...scrapedNearby.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat, lng: d.lng,
+        kind: "scraped" as const, title: d.title, description: d.description,
+        address: d.address, url: d.url,
+      })),
     ],
     [userMapDeals, scrapedNearby]
   );
