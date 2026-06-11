@@ -476,93 +476,155 @@ function MapView({ pins }: { pins: Pin[] }) {
     >
       {/* 可平移 + 縮放層 */}
       <div
-        className="absolute inset-0 origin-center"
-        style={{ transform: `translate(${tx}px, ${ty}px) scale(${scale})` }}
+        className="absolute origin-center"
+        style={{
+          left: "-100%", top: "-100%", width: "300%", height: "300%",
+          transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+        }}
       >
-        {/* 仿地圖底圖：綠地 / 街區 / 道路 */}
-        <svg viewBox="0 0 400 300" preserveAspectRatio="none" className="absolute inset-0 w-full h-full pointer-events-none">
-          <path d="M0 0 L120 0 L150 50 L90 110 L0 80 Z" fill="#CFE0BD" opacity="0.85" />
-          <path d="M260 220 L400 200 L400 300 L240 300 Z" fill="#CFE0BD" opacity="0.85" />
-          <circle cx="320" cy="80" r="32" fill="#CFE0BD" opacity="0.85" />
-          <g fill="#F2F1EA" opacity="0.7">
-            <rect x="40" y="20" width="50" height="40" rx="4" />
-            <rect x="160" y="40" width="60" height="50" rx="4" />
-            <rect x="240" y="20" width="40" height="50" rx="4" />
-            <rect x="40" y="120" width="70" height="50" rx="4" />
-            <rect x="160" y="120" width="50" height="50" rx="4" />
-            <rect x="240" y="120" width="60" height="40" rx="4" />
-            <rect x="320" y="140" width="60" height="50" rx="4" />
+        {/* 鋪滿整片可平移區域的底圖（綠地 / 街區 / 道路網格） */}
+        <svg
+          viewBox="0 0 1200 900"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full pointer-events-none"
+        >
+          {/* 綠地公園色塊（散佈於四周） */}
+          <g fill="#CFE0BD" opacity="0.85">
+            <circle cx="120" cy="120" r="70" />
+            <circle cx="960" cy="160" r="80" />
+            <circle cx="200" cy="780" r="90" />
+            <circle cx="1040" cy="720" r="70" />
+            <path d="M460 0 L600 0 L580 120 L440 100 Z" />
+            <path d="M820 380 L1000 360 L1040 480 L860 500 Z" />
+            <path d="M260 420 L380 420 L400 540 L240 540 Z" />
           </g>
-          <g stroke="#FFFFFF" strokeWidth="6" fill="none" strokeLinecap="round">
-            <line x1="0" y1="100" x2="400" y2="115" />
-            <line x1="0" y1="180" x2="400" y2="185" />
-            <line x1="130" y1="0" x2="145" y2="300" />
-            <line x1="300" y1="0" x2="315" y2="300" />
+          {/* 街區地塊 — 鋪滿整片 */}
+          <g fill="#F2F1EA" opacity="0.75">
+            {Array.from({ length: 6 }).flatMap((_, row) =>
+              Array.from({ length: 8 }).map((__, col) => {
+                const x = 40 + col * 145 + ((row % 2) * 15);
+                const y = 40 + row * 140;
+                const w = 70 + ((row + col) % 3) * 15;
+                const h = 50 + ((col) % 2) * 18;
+                return <rect key={`${row}-${col}`} x={x} y={y} width={w} height={h} rx="4" />;
+              })
+            )}
           </g>
-          <g stroke="#E8C760" strokeWidth="1.2" strokeDasharray="6 4" fill="none">
-            <line x1="0" y1="100" x2="400" y2="115" />
-            <line x1="0" y1="180" x2="400" y2="185" />
-            <line x1="130" y1="0" x2="145" y2="300" />
-            <line x1="300" y1="0" x2="315" y2="300" />
+          {/* 主幹道（粗白） */}
+          <g stroke="#FFFFFF" strokeWidth="14" fill="none" strokeLinecap="round">
+            <line x1="0" y1="220" x2="1200" y2="240" />
+            <line x1="0" y1="460" x2="1200" y2="470" />
+            <line x1="0" y1="700" x2="1200" y2="690" />
+            <line x1="280" y1="0" x2="300" y2="900" />
+            <line x1="600" y1="0" x2="600" y2="900" />
+            <line x1="900" y1="0" x2="920" y2="900" />
           </g>
-          <g stroke="#FFFFFF" strokeWidth="3" fill="none">
-            <line x1="0" y1="50" x2="400" y2="55" />
-            <line x1="0" y1="240" x2="400" y2="245" />
-            <line x1="60" y1="0" x2="65" y2="300" />
-            <line x1="220" y1="0" x2="230" y2="300" />
+          {/* 黃色虛線 */}
+          <g stroke="#E8C760" strokeWidth="1.5" strokeDasharray="8 5" fill="none">
+            <line x1="0" y1="220" x2="1200" y2="240" />
+            <line x1="0" y1="460" x2="1200" y2="470" />
+            <line x1="0" y1="700" x2="1200" y2="690" />
+            <line x1="280" y1="0" x2="300" y2="900" />
+            <line x1="600" y1="0" x2="600" y2="900" />
+            <line x1="900" y1="0" x2="920" y2="900" />
+          </g>
+          {/* 次要道路 */}
+          <g stroke="#FFFFFF" strokeWidth="5" fill="none">
+            <line x1="0" y1="100" x2="1200" y2="110" />
+            <line x1="0" y1="340" x2="1200" y2="350" />
+            <line x1="0" y1="580" x2="1200" y2="590" />
+            <line x1="0" y1="820" x2="1200" y2="820" />
+            <line x1="140" y1="0" x2="150" y2="900" />
+            <line x1="440" y1="0" x2="450" y2="900" />
+            <line x1="760" y1="0" x2="770" y2="900" />
+            <line x1="1060" y1="0" x2="1070" y2="900" />
           </g>
         </svg>
 
-        {/* 區域標籤 */}
-        <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">岡山區</div>
-        <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">燕巢區</div>
-        <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">楠梓區</div>
-        <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/70 pointer-events-none">大社區</div>
-
-        {/* 阿公店水庫 */}
-        <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
-          <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
-            <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
-            <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
+        {/* 周邊區域標籤（散佈於四周，平移時可見） */}
+        {[
+          { name: "高鐵左營站", left: "12%", top: "85%" },
+          { name: "義守大學", left: "78%", top: "20%" },
+          { name: "後勁", left: "20%", top: "78%" },
+          { name: "橋頭糖廠", left: "8%", top: "30%" },
+          { name: "仁武區", left: "85%", top: "82%" },
+          { name: "鳥松區", left: "92%", top: "62%" },
+          { name: "彌陀區", left: "6%", top: "12%" },
+          { name: "梓官區", left: "5%", top: "55%" },
+        ].map((l) => (
+          <div
+            key={l.name}
+            className="absolute text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70 pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            style={{ left: l.left, top: l.top }}
+          >
+            {l.name}
           </div>
-        </div>
+        ))}
 
-        {/* 「我的位置」 */}
-        <div className="absolute right-[22%] top-[24%] pointer-events-none">
-          <div className="relative flex items-center justify-center">
-            <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
-            <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+        {/* 視窗內主要內容（區域標籤 / 地標 / 標點） */}
+        <div
+          className="absolute"
+          style={{ left: "33.333%", top: "33.333%", width: "33.334%", height: "33.334%" }}
+        >
+          {/* 四區標籤 */}
+          <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">岡山區</div>
+          <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">燕巢區</div>
+          <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">楠梓區</div>
+          <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">大社區</div>
+
+          {/* 阿公店水庫 */}
+          <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
+            <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
+              <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
+              <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
+            </div>
           </div>
-          <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
-        </div>
 
-        {/* 優惠標點 — 顏色對應圖例（紅=用戶分享, 綠=優惠店家） */}
-        {pins.map((d) => {
-          const left = span(d.lng, minLng, maxLng);
-          const top = 100 - span(d.lat, minLat, maxLat);
-          const isPost = d.kind === "post";
-          const color = isPost ? "#EF4444" : "#10B981";
-          const active = selected === d.id;
-          return (
-            <button
-              key={d.id}
-              type="button"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
-              className="absolute -translate-x-1/2 -translate-y-full z-20 group"
-              style={{ left: `${left}%`, top: `${top}%` }}
-              aria-label={d.store}
-            >
-              <MapPin
-                className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
-                style={{ color }}
-                fill={color}
-                strokeWidth={1.5}
-                stroke="#fff"
-              />
-            </button>
-          );
-        })}
+          {/* 「我的位置」 */}
+          <div className="absolute right-[22%] top-[24%] pointer-events-none">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
+              <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+            </div>
+            <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
+          </div>
+
+          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家；附店名標籤 */}
+          {pins.map((d) => {
+            const left = span(d.lng, minLng, maxLng);
+            const top = 100 - span(d.lat, minLat, maxLat);
+            const isPost = d.kind === "post";
+            const color = isPost ? "#EF4444" : "#10B981";
+            const bg = isPost ? "#FEE2E2" : "#D1FAE5";
+            const textColor = isPost ? "#B91C1C" : "#047857";
+            const active = selected === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
+                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center"
+                style={{ left: `${left}%`, top: `${top}%` }}
+                aria-label={d.store}
+              >
+                <span
+                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[90px] truncate"
+                  style={{ background: bg, color: textColor, borderColor: color }}
+                >
+                  {d.store}
+                </span>
+                <MapPin
+                  className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
+                  style={{ color }}
+                  fill={color}
+                  strokeWidth={1.5}
+                  stroke="#fff"
+                />
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 縮放 / 重置控制 */}
