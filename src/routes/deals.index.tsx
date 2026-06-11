@@ -1,8 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { AppLayout } from "@/components/AppLayout";
 import { useAppStore, getMonthRange } from "@/store/useAppStore";
-import { useState, useMemo } from "react";
-import { useRef, useEffect } from "react";
+import { useState, useMemo, useRef } from "react";
 import { Plus as ZoomPlus, Minus as ZoomMinus, X as XIcon } from "lucide-react";
 import {
   Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
