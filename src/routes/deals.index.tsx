@@ -441,7 +441,6 @@ function MapView({ pins }: { pins: Pin[] }) {
   const [ty, setTy] = useState(0);
   const [selected, setSelected] = useState<string | null>(null);
   const dragging = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   // 高雄北部四區的經緯度範圍
   const minLat = 22.715, maxLat = 22.810;
@@ -468,7 +467,6 @@ function MapView({ pins }: { pins: Pin[] }) {
 
   return (
     <div
-      ref={containerRef}
       className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4] touch-none select-none"
       onPointerDown={onPointerDown}
       onPointerMove={onPointerMove}
