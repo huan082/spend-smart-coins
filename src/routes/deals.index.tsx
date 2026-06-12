@@ -637,13 +637,6 @@ function MapView({ pins }: { pins: Pin[] }) {
             );
           })}
 
-          {/* 沒有 pin 時的提示（在內部視窗顯示） */}
-          {pins.length === 0 && (
-            <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 text-center text-muted-foreground text-xs bg-card/90 px-3 py-2 rounded-xl shadow-soft pointer-events-none">
-              <MapPin className="w-5 h-5 mx-auto mb-1 opacity-60" />
-              沒有可顯示的店家位置
-            </div>
-          )}
         </div>
       </div>
 
