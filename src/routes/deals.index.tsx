@@ -589,14 +589,14 @@ function MapView({ pins }: { pins: Pin[] }) {
             <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
           </div>
 
-          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家；附店名標籤 */}
+          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家 */}
           {pins.map((d) => {
             const left = span(d.lng, minLng, maxLng);
             const top = 100 - span(d.lat, minLat, maxLat);
             const isPost = d.kind === "post";
             const color = isPost ? "#EF4444" : "#10B981";
-            const bg = isPost ? "#FEE2E2" : "#D1FAE5";
             const textColor = isPost ? "#B91C1C" : "#047857";
+            const bgSoft = isPost ? "#FEE2E2" : "#D1FAE5";
             const active = selected === d.id;
             return (
               <button
@@ -604,26 +604,39 @@ function MapView({ pins }: { pins: Pin[] }) {
                 type="button"
                 onPointerDown={(e) => e.stopPropagation()}
                 onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
-                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center"
+                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center group"
                 style={{ left: `${left}%`, top: `${top}%` }}
-                aria-label={d.store}
+                aria-label={`${d.store} - ${d.title}`}
               >
+                {/* 店名標籤（被選中時放大）*/}
                 <span
-                  className="text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[90px] truncate"
-                  style={{ background: bg, color: textColor, borderColor: color }}
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[100px] truncate transition-all ${
+                    active ? "scale-110" : ""
+                  }`}
+                  style={{ background: bgSoft, color: textColor, borderColor: color }}
                 >
                   {d.store}
                 </span>
-                <MapPin
-                  className={`drop-shadow-md transition-all ${active ? "w-9 h-9" : "w-7 h-7"}`}
-                  style={{ color }}
-                  fill={color}
-                  strokeWidth={1.5}
-                  stroke="#fff"
-                />
+                {/* 水滴 pin 標記 */}
+                <span className="relative block">
+                  {active && (
+                    <span
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full animate-ping"
+                      style={{ width: 28, height: 28, background: color, opacity: 0.4 }}
+                    />
+                  )}
+                  <MapPin
+                    className={`drop-shadow-md transition-all ${active ? "w-10 h-10" : "w-7 h-7"}`}
+                    style={{ color }}
+                    fill={color}
+                    strokeWidth={1.5}
+                    stroke="#fff"
+                  />
+                </span>
               </button>
             );
           })}
+
         </div>
       </div>
 
@@ -666,6 +679,12 @@ function MapView({ pins }: { pins: Pin[] }) {
       <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30 pointer-events-none">
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#EF4444" }} />用戶分享</span>
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
+      </div>
+
+      {/* 地圖上店家數量 */}
+      <div className="absolute top-3 left-3 z-30 text-[11px] font-bold bg-card/95 px-2.5 py-1 rounded-lg shadow-soft pointer-events-none flex items-center gap-1">
+        <MapPin className="w-3 h-3 text-primary" />
+        地圖上 {pins.length} 個店家
       </div>
 
       {/* 提示 */}
