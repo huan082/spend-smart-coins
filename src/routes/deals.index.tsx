@@ -681,6 +681,12 @@ function MapView({ pins }: { pins: Pin[] }) {
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
       </div>
 
+      {/* 地圖上店家數量 */}
+      <div className="absolute top-3 left-3 z-30 text-[11px] font-bold bg-card/95 px-2.5 py-1 rounded-lg shadow-soft pointer-events-none flex items-center gap-1">
+        <MapPin className="w-3 h-3 text-primary" />
+        地圖上 {pins.length} 個店家
+      </div>
+
       {/* 提示 */}
       {pins.length === 0 && (
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
