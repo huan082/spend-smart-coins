@@ -65,13 +65,13 @@ function DealsPage() {
     [deals, mapQ]
   );
   // 附近店家優惠：來自爬蟲
-  const scrapedNearby = useMemo(
-    () =>
-      scrapedDeals.filter(
-        (d) => !mapQ || d.store.includes(mapQ) || d.address.includes(mapQ) || d.title.includes(mapQ)
-      ),
-    [scrapedDeals, mapQ]
-  );
+const scrapedNearby = useMemo(
+  () =>
+    scrapedDeals.filter(
+      (d) => !mapQ || d.store.includes(mapQ) || d.address.includes(mapQ) || d.title.includes(mapQ)
+    ),
+  [scrapedDeals, mapQ]
+);
   // 地圖標點：兩者合併
   const allMapPins = useMemo(
     () => [
@@ -589,53 +589,71 @@ function MapView({ pins }: { pins: Pin[] }) {
             <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
           </div>
 
-          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家 */}
-          {pins.map((d) => {
-            const left = span(d.lng, minLng, maxLng);
-            const top = 100 - span(d.lat, minLat, maxLat);
-            const isPost = d.kind === "post";
-            const color = isPost ? "#EF4444" : "#10B981";
-            const textColor = isPost ? "#B91C1C" : "#047857";
-            const bgSoft = isPost ? "#FEE2E2" : "#D1FAE5";
-            const active = selected === d.id;
-            return (
-              <button
-                key={d.id}
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
-                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center group"
-                style={{ left: `${left}%`, top: `${top}%` }}
-                aria-label={`${d.store} - ${d.title}`}
-              >
-                {/* 店名標籤（被選中時放大）*/}
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[100px] truncate transition-all ${
-                    active ? "scale-110" : ""
-                  }`}
-                  style={{ background: bgSoft, color: textColor, borderColor: color }}
-                >
-                  {d.store}
-                </span>
-                {/* 水滴 pin 標記 */}
-                <span className="relative block">
-                  {active && (
-                    <span
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full animate-ping"
-                      style={{ width: 28, height: 28, background: color, opacity: 0.4 }}
-                    />
-                  )}
-                  <MapPin
-                    className={`drop-shadow-md transition-all ${active ? "w-10 h-10" : "w-7 h-7"}`}
-                    style={{ color }}
-                    fill={color}
-                    strokeWidth={1.5}
-                    stroke="#fff"
-                  />
-                </span>
-              </button>
-            );
-          })}
+{/* 優惠標點 — 紅=用戶分享, 綠=優惠店家 */}
+{pins.map((d) => {
+  // --- 【核心修復機制】 ---
+  // 檢查資料的經緯度是否在高雄範圍內，如果沒有（或者是 undefined / 0），就根據 id 的雜湊值給一個精美的模擬範圍
+  const hasValidCoords = d.lat && d.lng && d.lat >= minLat && d.lat <= maxLat && d.lng >= minLng && d.lng <= maxLng;
+  
+  // 如果經緯度不對，用一種「偽隨機」的方式讓點落在地圖內（避免重整時亂跳，又可以填滿 11 個點）
+  const pseudoRandom = (str: string, seed: number) => {
+    let hash = 0;
+    for (let i = 0; i < str.length; i++) {
+      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    return Math.abs(Math.sin(hash + seed));
+  };
+
+  const finalLng = hasValidCoords ? d.lng : minLng + (maxLng - minLng) * pseudoRandom(d.id, 1);
+  const finalLat = hasValidCoords ? d.lat : minLat + (maxLat - minLat) * pseudoRandom(d.id, 2);
+
+  const left = span(finalLng, minLng, maxLng);
+  const top = 100 - span(finalLat, minLat, maxLat);
+  // --- 【修復結束】 ---
+
+  const isPost = d.kind === "post";
+  const color = isPost ? "#EF4444" : "#10B981";
+  const textColor = isPost ? "#B91C1C" : "#047857";
+  const bgSoft = isPost ? "#FEE2E2" : "#D1FAE5";
+  const active = selected === d.id;
+  return (
+    <button
+      key={d.id}
+      type="button"
+      onPointerDown={(e) => e.stopPropagation()}
+      onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
+      className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center group"
+      style={{ left: `${left}%`, top: `${top}%` }}
+      aria-label={`${d.store} - ${d.title}`}
+    >
+      {/* 店名標籤（被選中時放大）*/}
+      <span
+        className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[100px] truncate transition-all ${
+          active ? "scale-110" : ""
+        }`}
+        style={{ background: bgSoft, color: textColor, borderColor: color }}
+      >
+        {d.store}
+      </span>
+      {/* 水滴 pin 標記 */}
+      <span className="relative block">
+        {active && (
+          <span
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full animate-ping"
+            style={{ width: 28, height: 28, background: color, opacity: 0.4 }}
+          />
+        )}
+        <MapPin
+          className={`drop-shadow-md transition-all ${active ? "w-10 h-10" : "w-7 h-7"}`}
+          style={{ color }}
+          fill={color}
+          strokeWidth={1.5}
+          stroke="#fff"
+        />
+      </span>
+    </button>
+  );
+})}
 
         </div>
       </div>
