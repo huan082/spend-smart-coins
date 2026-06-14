@@ -4,756 +4,756 @@ import { useAppStore, getMonthRange } from "@/store/useAppStore";
 import { useState, useMemo, useRef } from "react";
 import { Plus as ZoomPlus, Minus as ZoomMinus, X as XIcon } from "lucide-react";
 import {
-  Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
-  Bookmark, BookmarkCheck, RefreshCw, Globe,
+  Plus, Heart, Pencil, Trash2, ExternalLink, Sparkles, MapPin, Search, Star,
+  Bookmark, BookmarkCheck, RefreshCw, Globe,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { zhTW } from "date-fns/locale";
 
 export const Route = createFileRoute("/deals/")({
-  component: DealsPage,
-  head: () => ({ meta: [{ title: "優惠探索" }] }),
+  component: DealsPage,
+  head: () => ({ meta: [{ title: "優惠探索" }] }),
 });
 
 type Tab = "posts" | "map" | "frequent";
 
 function DealsPage() {
-  const {
-    deals, user, transactions,
-    likeDeal, deleteDeal,
-    favoriteDealIds, favoriteStores,
-    toggleFavoriteDeal, toggleFavoriteStore,
-    scrapedDeals, scrapedFetchedAt, refreshScrapedDeals,
-  } = useAppStore();
-  const [tab, setTab] = useState<Tab>("posts");
-  const [q, setQ] = useState("");
-  const [mapQ, setMapQ] = useState("");
-  const [refreshing, setRefreshing] = useState(false);
+  const {
+    deals, user, transactions,
+    likeDeal, deleteDeal,
+    favoriteDealIds, favoriteStores,
+    toggleFavoriteDeal, toggleFavoriteStore,
+    scrapedDeals, scrapedFetchedAt, refreshScrapedDeals,
+  } = useAppStore();
+  const [tab, setTab] = useState<Tab>("posts");
+  const [q, setQ] = useState("");
+  const [mapQ, setMapQ] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
 
-  const frequentStores = useMemo(() => {
-    const { start, end } = getMonthRange();
-    const billNames = new Set(useAppStore.getState().bills.map((b) => b.name));
-    const map = new Map<string, number>();
-    transactions.forEach((t) => {
-      const d = new Date(t.date);
-      if (
-        t.type === "expense" &&
-        t.store &&
-        d >= start &&
-        d < end &&
-        !t.note?.startsWith("[固定帳單]") &&
-        !billNames.has(t.store)
-      ) {
-        map.set(t.store, (map.get(t.store) || 0) + 1);
-      }
-    });
-    return Array.from(map.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([name, count]) => ({ name, count }));
-  }, [transactions]);
+  const frequentStores = useMemo(() => {
+    const { start, end } = getMonthRange();
+    const billNames = new Set(useAppStore.getState().bills.map((b) => b.name));
+    const map = new Map<string, number>();
+    transactions.forEach((t) => {
+      const d = new Date(t.date);
+      if (
+        t.type === "expense" &&
+        t.store &&
+        d >= start &&
+        d < end &&
+        !t.note?.startsWith("[固定帳單]") &&
+        !billNames.has(t.store)
+      ) {
+        map.set(t.store, (map.get(t.store) || 0) + 1);
+      }
+    });
+    return Array.from(map.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([name, count]) => ({ name, count }));
+  }, [transactions]);
 
-  const posts = deals.filter(
-    (d) => !q || d.title.includes(q) || d.store.includes(q) || d.description.includes(q)
-  );
+  const posts = deals.filter(
+    (d) => !q || d.title.includes(q) || d.store.includes(q) || d.description.includes(q)
+  );
 
-  // 地圖：使用者貼文中有填地址的
-  const userMapDeals = useMemo(
-    () =>
-      deals
-        .filter((d) => d.lat && d.lng && d.address)
-        .filter((d) => !mapQ || d.store.includes(mapQ) || d.address?.includes(mapQ) || d.title.includes(mapQ)),
-    [deals, mapQ]
-  );
-  // 附近店家優惠：來自爬蟲
-  const scrapedNearby = useMemo(
-    () =>
-      scrapedDeals.filter(
-        (d) => !mapQ || d.store.includes(mapQ) || d.address.includes(mapQ) || d.title.includes(mapQ)
-      ),
-    [scrapedDeals, mapQ]
-  );
-  // 地圖標點：兩者合併
-  const allMapPins = useMemo(
-    () => [
-      ...userMapDeals.map((d) => ({
-        id: d.id, store: d.store, lat: d.lat!, lng: d.lng!,
-        kind: "post" as const, title: d.title, description: d.description,
-        address: d.address ?? "", url: d.url,
-      })),
-      ...scrapedNearby.map((d) => ({
-        id: d.id, store: d.store, lat: d.lat, lng: d.lng,
-        kind: "scraped" as const, title: d.title, description: d.description,
-        address: d.address, url: d.url,
-      })),
-    ],
-    [userMapDeals, scrapedNearby]
-  );
+  // 地圖：使用者貼文中有填地址的
+  const userMapDeals = useMemo(
+    () =>
+      deals
+        .filter((d) => d.lat && d.lng && d.address)
+        .filter((d) => !mapQ || d.store.includes(mapQ) || d.address?.includes(mapQ) || d.title.includes(mapQ)),
+    [deals, mapQ]
+  );
+  // 附近店家優惠：來自爬蟲
+  const scrapedNearby = useMemo(
+    () =>
+      scrapedDeals.filter(
+        (d) => !mapQ || d.store.includes(mapQ) || d.address.includes(mapQ) || d.title.includes(mapQ)
+      ),
+    [scrapedDeals, mapQ]
+  );
+  // 地圖標點：兩者合併
+  const allMapPins = useMemo(
+    () => [
+      ...userMapDeals.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat!, lng: d.lng!,
+        kind: "post" as const, title: d.title, description: d.description,
+        address: d.address ?? "", url: d.url,
+      })),
+      ...scrapedNearby.map((d) => ({
+        id: d.id, store: d.store, lat: d.lat, lng: d.lng,
+        kind: "scraped" as const, title: d.title, description: d.description,
+        address: d.address, url: d.url,
+      })),
+    ],
+    [userMapDeals, scrapedNearby]
+  );
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    try { await refreshScrapedDeals(); } finally { setRefreshing(false); }
-  };
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try { await refreshScrapedDeals(); } finally { setRefreshing(false); }
+  };
 
-  const allFreqStores = Array.from(
-    new Set([...favoriteStores, ...frequentStores.map((s) => s.name)])
-  );
-  const frequentDeals = useMemo(() => {
-    const names = new Set(allFreqStores);
-    return deals.filter((d) => names.has(d.store));
-  }, [deals, allFreqStores]);
+  const allFreqStores = Array.from(
+    new Set([...favoriteStores, ...frequentStores.map((s) => s.name)])
+  );
+  const frequentDeals = useMemo(() => {
+    const names = new Set(allFreqStores);
+    return deals.filter((d) => names.has(d.store));
+  }, [deals, allFreqStores]);
 
-  const favoriteDeals = deals.filter((d) => favoriteDealIds.includes(d.id));
+  const favoriteDeals = deals.filter((d) => favoriteDealIds.includes(d.id));
 
-  return (
-    <AppLayout
-      title="優惠探索"
-      right={
-        <Link
-          to="/deals/new"
-          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-medium text-sm shadow-soft"
-        >
-          <Plus className="w-4 h-4" /> 分享
-        </Link>
-      }
-    >
-      <div className="px-5 py-4 space-y-3">
-        <div className="p-3 rounded-2xl bg-gradient-warm/40 border border-accent/30 flex items-center gap-3">
-          <span className="text-2xl">🎁</span>
-          <div className="flex-1">
-            <p className="font-bold text-sm">分享優惠拿積分</p>
-            <p className="text-xs text-muted-foreground">每分享一則優惠 +20 積分</p>
-          </div>
-        </div>
+  return (
+    <AppLayout
+      title="優惠探索"
+      right={
+        <Link
+          to="/deals/new"
+          className="flex items-center gap-1 px-3 py-1.5 rounded-full bg-primary text-primary-foreground font-medium text-sm shadow-soft"
+        >
+          <Plus className="w-4 h-4" /> 分享
+        </Link>
+      }
+    >
+      <div className="px-5 py-4 space-y-3">
+        <div className="p-3 rounded-2xl bg-gradient-warm/40 border border-accent/30 flex items-center gap-3">
+          <span className="text-2xl">🎁</span>
+          <div className="flex-1">
+            <p className="font-bold text-sm">分享優惠拿積分</p>
+            <p className="text-xs text-muted-foreground">每分享一則優惠 +20 積分</p>
+          </div>
+        </div>
 
-        {/* Tabs */}
-        <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-2xl">
-          {([
-            { k: "posts", l: "優惠貼文" },
-            { k: "map", l: "好康地圖" },
-            { k: "frequent", l: "收藏 / 常去" },
-          ] as { k: Tab; l: string }[]).map(({ k, l }) => (
-            <button
-              key={k}
-              onClick={() => setTab(k)}
-              className={`py-2 rounded-xl text-xs font-bold transition-all ${
-                tab === k ? "bg-card shadow-soft" : "text-muted-foreground"
-              }`}
-            >
-              {l}
-            </button>
-          ))}
-        </div>
+        {/* Tabs */}
+        <div className="grid grid-cols-3 gap-1 p-1 bg-muted rounded-2xl">
+          {([
+            { k: "posts", l: "優惠貼文" },
+            { k: "map", l: "好康地圖" },
+            { k: "frequent", l: "收藏 / 常去" },
+          ] as { k: Tab; l: string }[]).map(({ k, l }) => (
+            <button
+              key={k}
+              onClick={() => setTab(k)}
+              className={`py-2 rounded-xl text-xs font-bold transition-all ${
+                tab === k ? "bg-card shadow-soft" : "text-muted-foreground"
+              }`}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
 
-        {/* === 優惠貼文 === */}
-        {tab === "posts" && (
-          <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={q}
-                onChange={(e) => setQ(e.target.value)}
-                placeholder="搜尋商家、優惠..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
-              />
-            </div>
-            {posts.map((d) => (
-              <DealCard
-                key={d.id}
-                d={d}
-                isMine={d.authorId === user?.id}
-                isFav={favoriteDealIds.includes(d.id)}
-                onLike={() => likeDeal(d.id)}
-                onFav={() => toggleFavoriteDeal(d.id)}
-                onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
-              />
-            ))}
-            {posts.length === 0 && (
-              <div className="py-12 text-center text-muted-foreground">
-                <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">沒有找到優惠貼文</p>
-              </div>
-            )}
-          </>
-        )}
+        {/* === 優惠貼文 === */}
+        {tab === "posts" && (
+          <>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="搜尋商家、優惠..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
+              />
+            </div>
+            {posts.map((d) => (
+              <DealCard
+                key={d.id}
+                d={d}
+                isMine={d.authorId === user?.id}
+                isFav={favoriteDealIds.includes(d.id)}
+                onLike={() => likeDeal(d.id)}
+                onFav={() => toggleFavoriteDeal(d.id)}
+                onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
+              />
+            ))}
+            {posts.length === 0 && (
+              <div className="py-12 text-center text-muted-foreground">
+                <Sparkles className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">沒有找到優惠貼文</p>
+              </div>
+            )}
+          </>
+        )}
 
-        {/* === 好康地圖 === */}
-        {tab === "map" && (
-          <>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <input
-                value={mapQ}
-                onChange={(e) => setMapQ(e.target.value)}
-                placeholder="搜尋地址、店家..."
-                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
-              />
-            </div>
+        {/* === 好康地圖 === */}
+        {tab === "map" && (
+          <>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                value={mapQ}
+                onChange={(e) => setMapQ(e.target.value)}
+                placeholder="搜尋地址、店家..."
+                className="w-full pl-10 pr-4 py-2.5 rounded-2xl bg-card border border-border outline-none text-sm shadow-soft"
+              />
+            </div>
 
-            <MapView pins={allMapPins} />
+            <MapView pins={allMapPins} />
 
-            {/* 來自貼文（有地址） */}
-            <div>
-              <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
-                <BookmarkCheck className="w-3.5 h-3.5" /> 貼文中標註位置（{userMapDeals.length}）
-              </p>
-              <div className="space-y-2">
-                {userMapDeals.map((d) => (
-                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
-                    <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center flex-shrink-0">
-                      <MapPin className="w-5 h-5 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm truncate">{d.title}</p>
-                      <p className="text-xs text-muted-foreground truncate">{d.address}</p>
-                      <div className="flex gap-1 mt-1">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">@{d.authorName}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {userMapDeals.length === 0 && (
-                  <div className="py-6 text-center text-muted-foreground text-xs">
-                    還沒有貼文標註位置，分享優惠時填入地址即會出現在這
-                  </div>
-                )}
-              </div>
-            </div>
+            {/* 來自貼文（有地址） */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
+                <BookmarkCheck className="w-3.5 h-3.5" /> 貼文中標註位置（{userMapDeals.length}）
+              </p>
+              <div className="space-y-2">
+                {userMapDeals.map((d) => (
+                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
+                    <div className="w-10 h-10 rounded-xl bg-primary-soft flex items-center justify-center flex-shrink-0">
+                      <MapPin className="w-5 h-5 text-primary" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{d.title}</p>
+                      <p className="text-xs text-muted-foreground truncate">{d.address}</p>
+                      <div className="flex gap-1 mt-1">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">@{d.authorName}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {userMapDeals.length === 0 && (
+                  <div className="py-6 text-center text-muted-foreground text-xs">
+                    還沒有貼文標註位置，分享優惠時填入地址即會出現在這
+                  </div>
+                )}
+              </div>
+            </div>
 
-            {/* 來自爬蟲 */}
-            <div>
-              <div className="flex items-center justify-between mb-2 px-1">
-                <p className="text-xs font-bold text-muted-foreground flex items-center gap-1">
-                  <Globe className="w-3.5 h-3.5" /> 附近店家優惠（{scrapedNearby.length}）
-                </p>
-                <button
-                  onClick={handleRefresh}
-                  disabled={refreshing}
-                  className="text-xs text-primary font-medium flex items-center gap-1 disabled:opacity-50"
-                >
-                  <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} />
-                  {refreshing ? "更新中..." : "重新整理"}
-                </button>
-              </div>
-              {scrapedFetchedAt && (
-                <p className="text-[10px] text-muted-foreground px-1 mb-2">
-                  整合自優惠店家公開優惠資訊 · 更新於{" "}
-                  {formatDistanceToNow(new Date(scrapedFetchedAt), { addSuffix: true, locale: zhTW })}
-                </p>
-              )}
-              <div className="space-y-2">
-                {scrapedNearby.map((d) => (
-                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
-                    <div className="w-10 h-10 rounded-xl bg-tertiary/30 flex items-center justify-center flex-shrink-0">
-                      <Globe className="w-5 h-5 text-tertiary-foreground" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-bold text-sm truncate">{d.title}</p>
-                      <p className="text-xs text-muted-foreground line-clamp-1">{d.description}</p>
-                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">📍 {d.address}</p>
-                      <div className="flex gap-1 mt-1 items-center">
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
-                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{d.source}</span>
-                        {d.url && (
-                          <a href={d.url} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-primary flex items-center gap-0.5">
-                            原文 <ExternalLink className="w-2.5 h-2.5" />
-                          </a>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {scrapedNearby.length === 0 && (
-                  <div className="py-6 text-center text-muted-foreground text-xs">沒有符合的店家</div>
-                )}
-              </div>
-            </div>
-          </>
-        )}
+            {/* 來自爬蟲 */}
+            <div>
+              <div className="flex items-center justify-between mb-2 px-1">
+                <p className="text-xs font-bold text-muted-foreground flex items-center gap-1">
+                  <Globe className="w-3.5 h-3.5" /> 附近店家優惠（{scrapedNearby.length}）
+                </p>
+                <button
+                  onClick={handleRefresh}
+                  disabled={refreshing}
+                  className="text-xs text-primary font-medium flex items-center gap-1 disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3 h-3 ${refreshing ? "animate-spin" : ""}`} />
+                  {refreshing ? "更新中..." : "重新整理"}
+                </button>
+              </div>
+              {scrapedFetchedAt && (
+                <p className="text-[10px] text-muted-foreground px-1 mb-2">
+                  整合自優惠店家公開優惠資訊 · 更新於{" "}
+                  {formatDistanceToNow(new Date(scrapedFetchedAt), { addSuffix: true, locale: zhTW })}
+                </p>
+              )}
+              <div className="space-y-2">
+                {scrapedNearby.map((d) => (
+                  <div key={d.id} className="flex gap-3 p-3.5 rounded-2xl bg-card border border-border/60 shadow-soft">
+                    <div className="w-10 h-10 rounded-xl bg-tertiary/30 flex items-center justify-center flex-shrink-0">
+                      <Globe className="w-5 h-5 text-tertiary-foreground" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-bold text-sm truncate">{d.title}</p>
+                      <p className="text-xs text-muted-foreground line-clamp-1">{d.description}</p>
+                      <p className="text-[11px] text-muted-foreground truncate mt-0.5">📍 {d.address}</p>
+                      <div className="flex gap-1 mt-1 items-center">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">{d.store}</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-muted text-muted-foreground">{d.source}</span>
+                        {d.url && (
+                          <a href={d.url} target="_blank" rel="noreferrer" className="ml-auto text-[10px] text-primary flex items-center gap-0.5">
+                            原文 <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {scrapedNearby.length === 0 && (
+                  <div className="py-6 text-center text-muted-foreground text-xs">沒有符合的店家</div>
+                )}
+              </div>
+            </div>
+          </>
+        )}
 
-        {/* === 收藏與常去店家優惠 === */}
-        {tab === "frequent" && (
-          <>
-            <div className="p-3 rounded-2xl bg-tertiary/30 text-xs text-muted-foreground">
-              💡 根據你本月的消費習慣 + 收藏的店家，推薦相關優惠
-            </div>
+        {/* === 收藏與常去店家優惠 === */}
+        {tab === "frequent" && (
+          <>
+            <div className="p-3 rounded-2xl bg-tertiary/30 text-xs text-muted-foreground">
+              💡 根據你本月的消費習慣 + 收藏的店家，推薦相關優惠
+            </div>
 
-            {/* 收藏的優惠 */}
-            {favoriteDeals.length > 0 && (
-              <div>
-                <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
-                  <BookmarkCheck className="w-3.5 h-3.5" /> 我收藏的優惠
-                </p>
-                <div className="space-y-2">
-                  {favoriteDeals.map((d) => (
-                    <DealCard
-                      key={d.id}
-                      d={d}
-                      isMine={d.authorId === user?.id}
-                      isFav
-                      onLike={() => likeDeal(d.id)}
-                      onFav={() => toggleFavoriteDeal(d.id)}
-                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* 收藏的優惠 */}
+            {favoriteDeals.length > 0 && (
+              <div>
+                <p className="text-xs font-bold text-muted-foreground mb-2 px-1 flex items-center gap-1">
+                  <BookmarkCheck className="w-3.5 h-3.5" /> 我收藏的優惠
+                </p>
+                <div className="space-y-2">
+                  {favoriteDeals.map((d) => (
+                    <DealCard
+                      key={d.id}
+                      d={d}
+                      isMine={d.authorId === user?.id}
+                      isFav
+                      onLike={() => likeDeal(d.id)}
+                      onFav={() => toggleFavoriteDeal(d.id)}
+                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
-            {/* 常去店家清單（可加入收藏） */}
-            <div>
-              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
-                你的常去店家（本月）
-              </p>
-              {frequentStores.length === 0 ? (
-                <div className="py-8 text-center text-muted-foreground text-sm">
-                  還沒有店家消費紀錄，記帳時選店家即可累積
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-2">
-                  {frequentStores.map((s) => {
-                    const fav = favoriteStores.includes(s.name);
-                    return (
-                      <button
-                        key={s.name}
-                        onClick={() => toggleFavoriteStore(s.name)}
-                        className={`p-3 rounded-2xl border text-left ${
-                          fav ? "bg-primary-soft border-primary/40" : "bg-card border-border/60"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <p className="font-bold text-sm">{s.name}</p>
-                          <Star className={`w-4 h-4 ${fav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
-                        </div>
-                        <p className="text-[11px] text-muted-foreground">本月去 {s.count} 次</p>
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            {/* 常去店家清單（可加入收藏） */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
+                你的常去店家（本月）
+              </p>
+              {frequentStores.length === 0 ? (
+                <div className="py-8 text-center text-muted-foreground text-sm">
+                  還沒有店家消費紀錄，記帳時選店家即可累積
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-2">
+                  {frequentStores.map((s) => {
+                    const fav = favoriteStores.includes(s.name);
+                    return (
+                      <button
+                        key={s.name}
+                        onClick={() => toggleFavoriteStore(s.name)}
+                        className={`p-3 rounded-2xl border text-left ${
+                          fav ? "bg-primary-soft border-primary/40" : "bg-card border-border/60"
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <p className="font-bold text-sm">{s.name}</p>
+                          <Star className={`w-4 h-4 ${fav ? "fill-primary text-primary" : "text-muted-foreground"}`} />
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">本月去 {s.count} 次</p>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
 
-            {/* 對應的優惠 */}
-            <div>
-              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
-                常去店家有這些優惠
-              </p>
-              {frequentDeals.length > 0 ? (
-                <div className="space-y-2">
-                  {frequentDeals.map((d) => (
-                    <DealCard
-                      key={d.id}
-                      d={d}
-                      isMine={d.authorId === user?.id}
-                      isFav={favoriteDealIds.includes(d.id)}
-                      onLike={() => likeDeal(d.id)}
-                      onFav={() => toggleFavoriteDeal(d.id)}
-                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
-                    />
-                  ))}
-                </div>
-              ) : (
-                <div className="py-6 text-center text-muted-foreground text-sm">
-                  你常去的店家目前還沒有相關優惠
-                </div>
-              )}
-            </div>
-          </>
-        )}
-      </div>
-    </AppLayout>
-  );
+            {/* 對應的優惠 */}
+            <div>
+              <p className="text-xs font-bold text-muted-foreground mb-2 px-1">
+                常去店家有這些優惠
+              </p>
+              {frequentDeals.length > 0 ? (
+                <div className="space-y-2">
+                  {frequentDeals.map((d) => (
+                    <DealCard
+                      key={d.id}
+                      d={d}
+                      isMine={d.authorId === user?.id}
+                      isFav={favoriteDealIds.includes(d.id)}
+                      onLike={() => likeDeal(d.id)}
+                      onFav={() => toggleFavoriteDeal(d.id)}
+                      onDelete={() => confirm("刪除？") && deleteDeal(d.id)}
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="py-6 text-center text-muted-foreground text-sm">
+                  你常去的店家目前還沒有相關優惠
+                </div>
+              )}
+            </div>
+          </>
+        )}
+      </div>
+    </AppLayout>
+  );
 }
 
 function DealCard({
-  d, isMine, isFav, onLike, onFav, onDelete,
+  d, isMine, isFav, onLike, onFav, onDelete,
 }: {
-  d: ReturnType<typeof useAppStore.getState>["deals"][number];
-  isMine: boolean;
-  isFav: boolean;
-  onLike: () => void;
-  onFav: () => void;
-  onDelete: () => void;
+  d: ReturnType<typeof useAppStore.getState>["deals"][number];
+  isMine: boolean;
+  isFav: boolean;
+  onLike: () => void;
+  onFav: () => void;
+  onDelete: () => void;
 }) {
-  return (
-    <div className="rounded-3xl bg-card border border-border/60 shadow-soft overflow-hidden">
-      {d.photo && <img src={d.photo} alt={d.title} className="w-full h-40 object-cover" />}
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2 mb-1">
-              <span className="text-xs px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">
-                {d.store}
-              </span>
-              <span className="text-[11px] text-muted-foreground">
-                {formatDistanceToNow(new Date(d.createdAt), { addSuffix: true, locale: zhTW })}
-              </span>
-            </div>
-            <p className="font-display font-bold">{d.title}</p>
-            {d.address && (
-              <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
-                <MapPin className="w-3 h-3" /> {d.address}
-              </p>
-            )}
-          </div>
-          <div className="flex flex-col gap-1">
-            <button onClick={onFav} className="p-1 rounded text-muted-foreground">
-              {isFav ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
-            </button>
-            {isMine && (
-              <>
-                <Link to="/deals/edit/$id" params={{ id: d.id }} className="p-1 rounded text-muted-foreground">
-                  <Pencil className="w-3.5 h-3.5" />
-                </Link>
-                <button onClick={onDelete} className="p-1 rounded text-muted-foreground">
-                  <Trash2 className="w-3.5 h-3.5" />
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-        <p className="text-sm text-muted-foreground leading-relaxed">{d.description}</p>
-        {d.url && (
-          <a href={d.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2">
-            查看詳情 <ExternalLink className="w-3 h-3" />
-          </a>
-        )}
-        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
-          <span className="text-xs text-muted-foreground">分享：{d.authorName}</span>
-          <button onClick={onLike} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
-            <Heart className="w-3.5 h-3.5" /> {d.likes}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
+  return (
+    <div className="rounded-3xl bg-card border border-border/60 shadow-soft overflow-hidden">
+      {d.photo && <img src={d.photo} alt={d.title} className="w-full h-40 object-cover" />}
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-xs px-2 py-0.5 rounded-full bg-primary-soft text-primary font-bold">
+                {d.store}
+              </span>
+              <span className="text-[11px] text-muted-foreground">
+                {formatDistanceToNow(new Date(d.createdAt), { addSuffix: true, locale: zhTW })}
+              </span>
+            </div>
+            <p className="font-display font-bold">{d.title}</p>
+            {d.address && (
+              <p className="text-[11px] text-muted-foreground mt-1 flex items-center gap-1">
+                <MapPin className="w-3 h-3" /> {d.address}
+              </p>
+            )}
+          </div>
+          <div className="flex flex-col gap-1">
+            <button onClick={onFav} className="p-1 rounded text-muted-foreground">
+              {isFav ? <BookmarkCheck className="w-4 h-4 text-primary" /> : <Bookmark className="w-4 h-4" />}
+            </button>
+            {isMine && (
+              <>
+                <Link to="/deals/edit/$id" params={{ id: d.id }} className="p-1 rounded text-muted-foreground">
+                  <Pencil className="w-3.5 h-3.5" />
+                </Link>
+                <button onClick={onDelete} className="p-1 rounded text-muted-foreground">
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </>
+            )}
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground leading-relaxed">{d.description}</p>
+        {d.url && (
+          <a href={d.url} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-primary mt-2">
+            查看詳情 <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
+        <div className="flex items-center justify-between mt-3 pt-3 border-t border-border/50">
+          <span className="text-xs text-muted-foreground">分享：{d.authorName}</span>
+          <button onClick={onLike} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-destructive">
+            <Heart className="w-3.5 h-3.5" /> {d.likes}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 // 可拖曳 + 縮放的模擬地圖（高雄市 燕巢/大社/岡山/楠梓）
 type Pin = {
-  id: string; store: string; lat: number; lng: number;
-  kind: "post" | "scraped";
-  title: string; description: string; address: string; url?: string;
+  id: string; store: string; lat: number; lng: number;
+  kind: "post" | "scraped";
+  title: string; description: string; address: string; url?: string;
 };
 function MapView({ pins }: { pins: Pin[] }) {
-  const [scale, setScale] = useState(1);
-  const [tx, setTx] = useState(0);
-  const [ty, setTy] = useState(0);
-  const [selected, setSelected] = useState<string | null>(null);
-  const dragging = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
+  const [scale, setScale] = useState(1);
+  const [tx, setTx] = useState(0);
+  const [ty, setTy] = useState(0);
+  const [selected, setSelected] = useState<string | null>(null);
+  const dragging = useRef<{ x: number; y: number; tx: number; ty: number } | null>(null);
 
-  // 高雄北部四區的經緯度範圍
-  const minLat = 22.715, maxLat = 22.810;
-  const minLng = 120.275, maxLng = 120.385;
-  const span = (n: number, min: number, max: number) =>
-    max === min ? 50 : ((n - min) / (max - min)) * 100;
+  // 高雄北部四區的經緯度範圍
+  const minLat = 22.715, maxLat = 22.810;
+  const minLng = 120.275, maxLng = 120.385;
+  const span = (n: number, min: number, max: number) =>
+    max === min ? 50 : ((n - min) / (max - min)) * 100;
 
-  // 拖曳處理
-  const onPointerDown = (e: React.PointerEvent) => {
-    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-    dragging.current = { x: e.clientX, y: e.clientY, tx, ty };
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragging.current) return;
-    const dx = e.clientX - dragging.current.x;
-    const dy = e.clientY - dragging.current.y;
-    setTx(dragging.current.tx + dx);
-    setTy(dragging.current.ty + dy);
-  };
-  const onPointerUp = () => { dragging.current = null; };
-  const resetView = () => { setScale(1); setTx(0); setTy(0); };
+  // 拖曳處理
+  const onPointerDown = (e: React.PointerEvent) => {
+    (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+    dragging.current = { x: e.clientX, y: e.clientY, tx, ty };
+  };
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!dragging.current) return;
+    const dx = e.clientX - dragging.current.x;
+    const dy = e.clientY - dragging.current.y;
+    setTx(dragging.current.tx + dx);
+    setTy(dragging.current.ty + dy);
+  };
+  const onPointerUp = () => { dragging.current = null; };
+  const resetView = () => { setScale(1); setTx(0); setTy(0); };
 
-  const selectedPin = pins.find((p) => p.id === selected) || null;
+  const selectedPin = pins.find((p) => p.id === selected) || null;
 
-  return (
-    <div
-      className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4] touch-none select-none"
-      onPointerDown={onPointerDown}
-      onPointerMove={onPointerMove}
-      onPointerUp={onPointerUp}
-      onPointerCancel={onPointerUp}
-      style={{ cursor: dragging.current ? "grabbing" : "grab" }}
-    >
-      {/* 可平移 + 縮放層 */}
-      <div
-        className="absolute origin-center"
-        style={{
-          left: "-100%", top: "-100%", width: "300%", height: "300%",
-          transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
-        }}
-      >
-        {/* 鋪滿整片可平移區域的底圖（綠地 / 街區 / 道路網格） */}
-        <svg
-          viewBox="0 0 1200 900"
-          preserveAspectRatio="none"
-          className="absolute inset-0 w-full h-full pointer-events-none"
-        >
-          {/* 綠地公園色塊（散佈於四周） */}
-          <g fill="#CFE0BD" opacity="0.85">
-            <circle cx="120" cy="120" r="70" />
-            <circle cx="960" cy="160" r="80" />
-            <circle cx="200" cy="780" r="90" />
-            <circle cx="1040" cy="720" r="70" />
-            <path d="M460 0 L600 0 L580 120 L440 100 Z" />
-            <path d="M820 380 L1000 360 L1040 480 L860 500 Z" />
-            <path d="M260 420 L380 420 L400 540 L240 540 Z" />
-          </g>
-          {/* 街區地塊 — 鋪滿整片 */}
-          <g fill="#F2F1EA" opacity="0.75">
-            {Array.from({ length: 6 }).flatMap((_, row) =>
-              Array.from({ length: 8 }).map((__, col) => {
-                const x = 40 + col * 145 + ((row % 2) * 15);
-                const y = 40 + row * 140;
-                const w = 70 + ((row + col) % 3) * 15;
-                const h = 50 + ((col) % 2) * 18;
-                return <rect key={`${row}-${col}`} x={x} y={y} width={w} height={h} rx="4" />;
-              })
-            )}
-          </g>
-          {/* 主幹道（粗白） */}
-          <g stroke="#FFFFFF" strokeWidth="14" fill="none" strokeLinecap="round">
-            <line x1="0" y1="220" x2="1200" y2="240" />
-            <line x1="0" y1="460" x2="1200" y2="470" />
-            <line x1="0" y1="700" x2="1200" y2="690" />
-            <line x1="280" y1="0" x2="300" y2="900" />
-            <line x1="600" y1="0" x2="600" y2="900" />
-            <line x1="900" y1="0" x2="920" y2="900" />
-          </g>
-          {/* 黃色虛線 */}
-          <g stroke="#E8C760" strokeWidth="1.5" strokeDasharray="8 5" fill="none">
-            <line x1="0" y1="220" x2="1200" y2="240" />
-            <line x1="0" y1="460" x2="1200" y2="470" />
-            <line x1="0" y1="700" x2="1200" y2="690" />
-            <line x1="280" y1="0" x2="300" y2="900" />
-            <line x1="600" y1="0" x2="600" y2="900" />
-            <line x1="900" y1="0" x2="920" y2="900" />
-          </g>
-          {/* 次要道路 */}
-          <g stroke="#FFFFFF" strokeWidth="5" fill="none">
-            <line x1="0" y1="100" x2="1200" y2="110" />
-            <line x1="0" y1="340" x2="1200" y2="350" />
-            <line x1="0" y1="580" x2="1200" y2="590" />
-            <line x1="0" y1="820" x2="1200" y2="820" />
-            <line x1="140" y1="0" x2="150" y2="900" />
-            <line x1="440" y1="0" x2="450" y2="900" />
-            <line x1="760" y1="0" x2="770" y2="900" />
-            <line x1="1060" y1="0" x2="1070" y2="900" />
-          </g>
-        </svg>
+  return (
+    <div
+      className="relative h-72 rounded-3xl overflow-hidden border border-border/60 shadow-soft bg-[#E8EEE4] touch-none select-none"
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      style={{ cursor: dragging.current ? "grabbing" : "grab" }}
+    >
+      {/* 可平移 + 縮放層 */}
+      <div
+        className="absolute origin-center"
+        style={{
+          left: "-100%", top: "-100%", width: "300%", height: "300%",
+          transform: `translate(${tx}px, ${ty}px) scale(${scale})`,
+        }}
+      >
+        {/* 鋪滿整片可平移區域的底圖（綠地 / 街區 / 道路網格） */}
+        <svg
+          viewBox="0 0 1200 900"
+          preserveAspectRatio="none"
+          className="absolute inset-0 w-full h-full pointer-events-none"
+        >
+          {/* 綠地公園色塊（散佈於四周） */}
+          <g fill="#CFE0BD" opacity="0.85">
+            <circle cx="120" cy="120" r="70" />
+            <circle cx="960" cy="160" r="80" />
+            <circle cx="200" cy="780" r="90" />
+            <circle cx="1040" cy="720" r="70" />
+            <path d="M460 0 L600 0 L580 120 L440 100 Z" />
+            <path d="M820 380 L1000 360 L1040 480 L860 500 Z" />
+            <path d="M260 420 L380 420 L400 540 L240 540 Z" />
+          </g>
+          {/* 街區地塊 — 鋪滿整片 */}
+          <g fill="#F2F1EA" opacity="0.75">
+            {Array.from({ length: 6 }).flatMap((_, row) =>
+              Array.from({ length: 8 }).map((__, col) => {
+                const x = 40 + col * 145 + ((row % 2) * 15);
+                const y = 40 + row * 140;
+                const w = 70 + ((row + col) % 3) * 15;
+                const h = 50 + ((col) % 2) * 18;
+                return <rect key={`${row}-${col}`} x={x} y={y} width={w} height={h} rx="4" />;
+              })
+            )}
+          </g>
+          {/* 主幹道（粗白） */}
+          <g stroke="#FFFFFF" strokeWidth="14" fill="none" strokeLinecap="round">
+            <line x1="0" y1="220" x2="1200" y2="240" />
+            <line x1="0" y1="460" x2="1200" y2="470" />
+            <line x1="0" y1="700" x2="1200" y2="690" />
+            <line x1="280" y1="0" x2="300" y2="900" />
+            <line x1="600" y1="0" x2="600" y2="900" />
+            <line x1="900" y1="0" x2="920" y2="900" />
+          </g>
+          {/* 黃色虛線 */}
+          <g stroke="#E8C760" strokeWidth="1.5" strokeDasharray="8 5" fill="none">
+            <line x1="0" y1="220" x2="1200" y2="240" />
+            <line x1="0" y1="460" x2="1200" y2="470" />
+            <line x1="0" y1="700" x2="1200" y2="690" />
+            <line x1="280" y1="0" x2="300" y2="900" />
+            <line x1="600" y1="0" x2="600" y2="900" />
+            <line x1="900" y1="0" x2="920" y2="900" />
+          </g>
+          {/* 次要道路 */}
+          <g stroke="#FFFFFF" strokeWidth="5" fill="none">
+            <line x1="0" y1="100" x2="1200" y2="110" />
+            <line x1="0" y1="340" x2="1200" y2="350" />
+            <line x1="0" y1="580" x2="1200" y2="590" />
+            <line x1="0" y1="820" x2="1200" y2="820" />
+            <line x1="140" y1="0" x2="150" y2="900" />
+            <line x1="440" y1="0" x2="450" y2="900" />
+            <line x1="760" y1="0" x2="770" y2="900" />
+            <line x1="1060" y1="0" x2="1070" y2="900" />
+          </g>
+        </svg>
 
-        {/* 周邊區域標籤（散佈於四周，平移時可見） */}
-        {[
-          { name: "高鐵左營站", left: "12%", top: "85%" },
-          { name: "義守大學", left: "78%", top: "20%" },
-          { name: "後勁", left: "20%", top: "78%" },
-          { name: "橋頭糖廠", left: "8%", top: "30%" },
-          { name: "仁武區", left: "85%", top: "82%" },
-          { name: "鳥松區", left: "92%", top: "62%" },
-          { name: "彌陀區", left: "6%", top: "12%" },
-          { name: "梓官區", left: "5%", top: "55%" },
-        ].map((l) => (
-          <div
-            key={l.name}
-            className="absolute text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70 pointer-events-none -translate-x-1/2 -translate-y-1/2"
-            style={{ left: l.left, top: l.top }}
-          >
-            {l.name}
-          </div>
-        ))}
+        {/* 周邊區域標籤（散佈於四周，平移時可見） */}
+        {[
+          { name: "高鐵左營站", left: "12%", top: "85%" },
+          { name: "義守大學", left: "78%", top: "20%" },
+          { name: "後勁", left: "20%", top: "78%" },
+          { name: "橋頭糖廠", left: "8%", top: "30%" },
+          { name: "仁武區", left: "85%", top: "82%" },
+          { name: "鳥松區", left: "92%", top: "62%" },
+          { name: "彌陀區", left: "6%", top: "12%" },
+          { name: "梓官區", left: "5%", top: "55%" },
+        ].map((l) => (
+          <div
+            key={l.name}
+            className="absolute text-[10px] font-bold text-foreground/60 px-2 py-0.5 rounded bg-card/70 pointer-events-none -translate-x-1/2 -translate-y-1/2"
+            style={{ left: l.left, top: l.top }}
+          >
+            {l.name}
+          </div>
+        ))}
 
-        {/* 視窗內主要內容（區域標籤 / 地標 / 標點） */}
-        <div
-          className="absolute"
-          style={{ left: "33.333%", top: "33.333%", width: "33.334%", height: "33.334%" }}
-        >
-          {/* 四區標籤 */}
-          <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">岡山區</div>
-          <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">燕巢區</div>
-          <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">楠梓區</div>
-          <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">大社區</div>
+        {/* 視窗內主要內容（區域標籤 / 地標 / 標點） */}
+        <div
+          className="absolute"
+          style={{ left: "33.333%", top: "33.333%", width: "33.334%", height: "33.334%" }}
+        >
+          {/* 四區標籤 */}
+          <div className="absolute top-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">岡山區</div>
+          <div className="absolute top-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">燕巢區</div>
+          <div className="absolute bottom-3 left-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">楠梓區</div>
+          <div className="absolute bottom-3 right-3 text-[10px] font-bold text-foreground/70 px-2 py-0.5 rounded bg-card/80 pointer-events-none">大社區</div>
 
-          {/* 阿公店水庫 */}
-          <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
-            <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
-              <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
-              <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
-            </div>
-          </div>
+          {/* 阿公店水庫 */}
+          <div className="absolute pointer-events-none" style={{ left: "58%", top: "14%" }}>
+            <div className="flex flex-col items-center -translate-x-1/2 -translate-y-1/2">
+              <div className="w-10 h-7 rounded-[40%] bg-[#7FB6CC] border border-card shadow-soft" />
+              <p className="text-[9px] font-bold text-[#2C5566] mt-0.5 whitespace-nowrap">阿公店水庫</p>
+            </div>
+          </div>
 
-          {/* 「我的位置」 */}
-          <div className="absolute right-[22%] top-[24%] pointer-events-none">
-            <div className="relative flex items-center justify-center">
-              <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
-              <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
-            </div>
-            <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
-          </div>
+          {/* 「我的位置」 */}
+          <div className="absolute right-[22%] top-[24%] pointer-events-none">
+            <div className="relative flex items-center justify-center">
+              <div className="absolute w-8 h-8 rounded-full bg-[#3B82F6]/30 animate-ping" />
+              <div className="relative w-3.5 h-3.5 rounded-full bg-[#3B82F6] border-2 border-card shadow-soft" />
+            </div>
+            <p className="text-[9px] font-bold text-[#1E3A8A] mt-1 text-center whitespace-nowrap">我的位置</p>
+          </div>
 
-          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家 */}
-          {pins.map((d) => {
-            const left = span(d.lng, minLng, maxLng);
-            const top = 100 - span(d.lat, minLat, maxLat);
-            const isPost = d.kind === "post";
-            const color = isPost ? "#EF4444" : "#10B981";
-            const textColor = isPost ? "#B91C1C" : "#047857";
-            const bgSoft = isPost ? "#FEE2E2" : "#D1FAE5";
-            const active = selected === d.id;
-            return (
-              <button
-                key={d.id}
-                type="button"
-                onPointerDown={(e) => e.stopPropagation()}
-                onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
-                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center group"
-                style={{ left: `${left}%`, top: `${top}%` }}
-                aria-label={`${d.store} - ${d.title}`}
-              >
-                {/* 店名標籤（被選中時放大）*/}
-                <span
-                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[100px] truncate transition-all ${
-                    active ? "scale-110" : ""
-                  }`}
-                  style={{ background: bgSoft, color: textColor, borderColor: color }}
-                >
-                  {d.store}
-                </span>
-                {/* 水滴 pin 標記 */}
-                <span className="relative block">
-                  {active && (
-                    <span
-                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full animate-ping"
-                      style={{ width: 28, height: 28, background: color, opacity: 0.4 }}
-                    />
-                  )}
-                  <MapPin
-                    className={`drop-shadow-md transition-all ${active ? "w-10 h-10" : "w-7 h-7"}`}
-                    style={{ color }}
-                    fill={color}
-                    strokeWidth={1.5}
-                    stroke="#fff"
-                  />
-                </span>
-              </button>
-            );
-          })}
+          {/* 優惠標點 — 紅=用戶分享, 綠=優惠店家 */}
+          {pins.map((d) => {
+            const left = span(d.lng, minLng, maxLng);
+            const top = 100 - span(d.lat, minLat, maxLat);
+            const isPost = d.kind === "post";
+            const color = isPost ? "#EF4444" : "#10B981";
+            const textColor = isPost ? "#B91C1C" : "#047857";
+            const bgSoft = isPost ? "#FEE2E2" : "#D1FAE5";
+            const active = selected === d.id;
+            return (
+              <button
+                key={d.id}
+                type="button"
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={(e) => { e.stopPropagation(); setSelected(active ? null : d.id); }}
+                className="absolute -translate-x-1/2 -translate-y-full z-20 flex flex-col items-center group"
+                style={{ left: `${left}%`, top: `${top}%` }}
+                aria-label={`${d.store} - ${d.title}`}
+              >
+                {/* 店名標籤（被選中時放大）*/}
+                <span
+                  className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full whitespace-nowrap mb-0.5 border shadow-soft max-w-[100px] truncate transition-all ${
+                    active ? "scale-110" : ""
+                  }`}
+                  style={{ background: bgSoft, color: textColor, borderColor: color }}
+                >
+                  {d.store}
+                </span>
+                {/* 水滴 pin 標記 */}
+                <span className="relative block">
+                  {active && (
+                    <span
+                      className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full animate-ping"
+                      style={{ width: 28, height: 28, background: color, opacity: 0.4 }}
+                    />
+                  )}
+                  <MapPin
+                    className={`drop-shadow-md transition-all ${active ? "w-10 h-10" : "w-7 h-7"}`}
+                    style={{ color }}
+                    fill={color}
+                    strokeWidth={1.5}
+                    stroke="#fff"
+                  />
+                </span>
+              </button>
+            );
+          })}
 
-        </div>
-      </div>
+        </div>
+      </div>
 
-      {/* 縮放 / 重置控制 */}
-      <div className="absolute top-3 right-3 z-30 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground">
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))}
-          disabled={scale >= 3}
-          aria-label="放大"
-          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
-        >
-          <ZoomPlus className="w-4 h-4" />
-        </button>
-        <div className="h-px bg-border" />
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={() => setScale((s) => Math.max(1, +(s - 0.25).toFixed(2)))}
-          disabled={scale <= 1}
-          aria-label="縮小"
-          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
-        >
-          <ZoomMinus className="w-4 h-4" />
-        </button>
-        <div className="h-px bg-border" />
-        <button
-          type="button"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={resetView}
-          aria-label="重置"
-          className="w-8 h-8 flex items-center justify-center hover:bg-muted text-[10px] font-bold"
-        >
-          重置
-        </button>
-      </div>
+      {/* 縮放 / 重置控制 */}
+      <div className="absolute top-3 right-3 z-30 flex flex-col rounded-lg overflow-hidden shadow-soft bg-card/95 text-foreground">
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setScale((s) => Math.min(3, +(s + 0.25).toFixed(2)))}
+          disabled={scale >= 3}
+          aria-label="放大"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
+        >
+          <ZoomPlus className="w-4 h-4" />
+        </button>
+        <div className="h-px bg-border" />
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={() => setScale((s) => Math.max(1, +(s - 0.25).toFixed(2)))}
+          disabled={scale <= 1}
+          aria-label="縮小"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted disabled:opacity-40"
+        >
+          <ZoomMinus className="w-4 h-4" />
+        </button>
+        <div className="h-px bg-border" />
+        <button
+          type="button"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={resetView}
+          aria-label="重置"
+          className="w-8 h-8 flex items-center justify-center hover:bg-muted text-[10px] font-bold"
+        >
+          重置
+        </button>
+      </div>
 
-      {/* 圖例 */}
-      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30 pointer-events-none">
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#EF4444" }} />用戶分享</span>
-        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
-      </div>
+      {/* 圖例 */}
+      <div className="absolute bottom-2 right-2 text-[10px] text-muted-foreground bg-card/90 px-2 py-1 rounded-lg flex items-center gap-2 shadow-soft z-30 pointer-events-none">
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#EF4444" }} />用戶分享</span>
+        <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
+      </div>
 
-      {/* 地圖上店家數量 */}
-      <div className="absolute top-3 left-3 z-30 text-[11px] font-bold bg-card/95 px-2.5 py-1 rounded-lg shadow-soft pointer-events-none flex items-center gap-1">
-        <MapPin className="w-3 h-3 text-primary" />
-        地圖上 {pins.length} 個店家
-      </div>
+      {/* 地圖上店家數量 */}
+      <div className="absolute top-3 left-3 z-30 text-[11px] font-bold bg-card/95 px-2.5 py-1 rounded-lg shadow-soft pointer-events-none flex items-center gap-1">
+        <MapPin className="w-3 h-3 text-primary" />
+        地圖上 {pins.length} 個店家
+      </div>
 
-      {/* 提示 */}
-      {pins.length === 0 && (
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="text-center text-muted-foreground text-sm bg-card/80 px-3 py-2 rounded-xl">
-            <MapPin className="w-6 h-6 mx-auto mb-1 opacity-50" />
-            目前沒有可顯示的店家位置
-          </div>
-        </div>
-      )}
+      {/* 提示 */}
+      {pins.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center text-muted-foreground text-sm bg-card/80 px-3 py-2 rounded-xl">
+            <MapPin className="w-6 h-6 mx-auto mb-1 opacity-50" />
+            目前沒有可顯示的店家位置
+          </div>
+        </div>
+      )}
 
-      {/* 點擊圖標顯示優惠資訊 */}
-      {selectedPin && (
-        <div
-          className="absolute left-2 right-2 bottom-10 z-40 rounded-2xl bg-card border border-border shadow-lg p-3"
-          onPointerDown={(e) => e.stopPropagation()}
-        >
-          <div className="flex items-start gap-2">
-            <div
-              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
-              style={{ background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5" }}
-            >
-              <MapPin
-                className="w-4 h-4"
-                style={{ color: selectedPin.kind === "post" ? "#EF4444" : "#10B981" }}
-                fill="currentColor"
-              />
-            </div>
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-1.5 mb-0.5">
-                <span
-                  className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
-                  style={{
-                    background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5",
-                    color: selectedPin.kind === "post" ? "#B91C1C" : "#047857",
-                  }}
-                >
-                  {selectedPin.kind === "post" ? "用戶分享" : "優惠店家"}
-                </span>
-                <span className="text-[10px] text-muted-foreground font-bold">{selectedPin.store}</span>
-              </div>
-              <p className="font-bold text-sm truncate">{selectedPin.title}</p>
-              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{selectedPin.description}</p>
-              {selectedPin.address && (
-                <p className="text-[11px] text-muted-foreground mt-1 truncate">📍 {selectedPin.address}</p>
-              )}
-              {selectedPin.url && (
-                <a
-                  href={selectedPin.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center gap-0.5 text-[11px] text-primary mt-1"
-                >
-                  查看詳情 <ExternalLink className="w-3 h-3" />
-                </a>
-              )}
-            </div>
-            <button
-              type="button"
-              onClick={() => setSelected(null)}
-              className="p-1 text-muted-foreground hover:text-foreground"
-              aria-label="關閉"
-            >
-              <XIcon className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
+      {/* 點擊圖標顯示優惠資訊 */}
+      {selectedPin && (
+        <div
+          className="absolute left-2 right-2 bottom-10 z-40 rounded-2xl bg-card border border-border shadow-lg p-3"
+          onPointerDown={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-start gap-2">
+            <div
+              className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
+              style={{ background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5" }}
+            >
+              <MapPin
+                className="w-4 h-4"
+                style={{ color: selectedPin.kind === "post" ? "#EF4444" : "#10B981" }}
+                fill="currentColor"
+              />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-1.5 mb-0.5">
+                <span
+                  className="text-[10px] px-1.5 py-0.5 rounded-full font-bold"
+                  style={{
+                    background: selectedPin.kind === "post" ? "#FEE2E2" : "#D1FAE5",
+                    color: selectedPin.kind === "post" ? "#B91C1C" : "#047857",
+                  }}
+                >
+                  {selectedPin.kind === "post" ? "用戶分享" : "優惠店家"}
+                </span>
+                <span className="text-[10px] text-muted-foreground font-bold">{selectedPin.store}</span>
+              </div>
+              <p className="font-bold text-sm truncate">{selectedPin.title}</p>
+              <p className="text-xs text-muted-foreground line-clamp-2 mt-0.5">{selectedPin.description}</p>
+              {selectedPin.address && (
+                <p className="text-[11px] text-muted-foreground mt-1 truncate">📍 {selectedPin.address}</p>
+              )}
+              {selectedPin.url && (
+                <a
+                  href={selectedPin.url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-0.5 text-[11px] text-primary mt-1"
+                >
+                  查看詳情 <ExternalLink className="w-3 h-3" />
+                </a>
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => setSelected(null)}
+              className="p-1 text-muted-foreground hover:text-foreground"
+              aria-label="關閉"
+            >
+              <XIcon className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }
