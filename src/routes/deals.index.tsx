@@ -681,6 +681,22 @@ function MapView({ pins }: { pins: Pin[] }) {
         <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full" style={{ background: "#10B981" }} />優惠店家</span>
       </div>
 
+      {/* 地圖上店家數量 */}
+      <div className="absolute top-3 left-3 z-30 text-[11px] font-bold bg-card/95 px-2.5 py-1 rounded-lg shadow-soft pointer-events-none flex items-center gap-1">
+        <MapPin className="w-3 h-3 text-primary" />
+        地圖上 {pins.length} 個店家
+      </div>
+
+      {/* 提示 */}
+      {pins.length === 0 && (
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+          <div className="text-center text-muted-foreground text-sm bg-card/80 px-3 py-2 rounded-xl">
+            <MapPin className="w-6 h-6 mx-auto mb-1 opacity-50" />
+            目前沒有可顯示的店家位置
+          </div>
+        </div>
+      )}
+
       {/* 點擊圖標顯示優惠資訊 */}
       {selectedPin && (
         <div
